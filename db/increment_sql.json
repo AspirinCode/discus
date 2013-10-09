@@ -1,0 +1,10 @@
+{
+    "2013-08-20 11:58:45": {
+        "name": "Initial Update",
+        "sql": ""
+    },
+    "2013-09-09 15:04:22": {
+        "name": "Drop Keys",
+        "sql": "ALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX pi_stacking;\nALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX salt_bridge;\nALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX hydrophobic_contacts;\nALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX pi_cation;\nALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX metal_coordination;\nALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX hbond_acceptor;\nALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX hbond_donor;\nALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX hbond_acceptor_2;\nALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX hbond_donor_2;\nALTER TABLE {project_prefix}docking_conformations_interactions DROP INDEX metal_coordination_2;\n\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(hbond_acceptor);\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(hbond_acceptor_crude);\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(hbond_donor);\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(hbond_donor_crude);\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(salt_bridges);\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(hydrophobic_contacts);\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(pi_stacking);\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(pi_cation);\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(metal_coordination);\nALTER TABLE {project_prefix}docking_conformations_interactions ADD INDEX(metal_coordination_crude);"
+    }
+}

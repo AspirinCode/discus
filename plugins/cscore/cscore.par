@@ -1,0 +1,87 @@
+# default parameter file for Tm2 as CSCORE
+
+use_non_rot_prot     no
+use_amide_prot       no
+use_backbone_prot    no
+use_bonds_prot       none
+
+use_non_rot_lig      no
+use_amide_lig        no
+use_backbone_lig     no
+use_bonds_lig        all
+
+use_dist_dep_diel    yes
+use_charges          yes
+use_torsionals       yes
+use_constraints      no
+use_rt               yes
+use_vdw              yes
+diel_const           1.0
+
+bfgs_print           no
+max_cycles           100
+max_line_tries       10
+print_interval       10
+
+initial_alpha        0.001
+max_alpha            1.0
+alpha_multiple       10.0
+alpha_tolerance      0.1
+grad_tolerance       0.01
+dist_tolerance       0.01
+energy_tolerance     0.1
+min_e                none
+hess_update          1.0e-7
+grad_step            0.01
+max_displace         1.0
+
+multi_prefix         multi
+
+# These values enforce SMALL/SOFT H's
+tr_h_vdw_radius      1.0
+tr_h_vdw_epsilon     0.030
+
+tr_hb_factor         0.7
+tr_14_scale          1.0
+
+forcefield           tripos
+#TA_ASCTABLES         $TA_ASCTABLES/
+#TA_MOLTABLES         $TA_MOLTABLES/
+
+relax_structure      no
+rigid_structure      no
+independent_ligands  yes
+use_multimol2_files  no
+initial_cscore       yes
+final_cscore         yes
+cscore_D_score       yes
+cscore_PMF_score     yes
+cscore_G_score       yes
+cscore_Chemscore     yes
+
+# These values enforce GASTEIGER charges throughout
+prot_charge          GASTEIGER
+lig_charge           GASTEIGER
+
+operation_mode       one_dir
+Fe_charge            2.0
+
+dscore_epsilon       4.0
+dscore_cutoff        20.0
+dscore_exponents     6 12
+dscore_max_contrib   0.5
+dscore_dist_dep_diel yes
+dscore_dock_params   no
+
+PMF_use_12           no
+
+gscore_max_contrib   0.5
+gscore_h_cutoff      7.0
+gscore_c_cutoff      9.0
+gscore_s_cutoff      12.0
+
+chemscore_waters     no
+chemscore_debug      no
+
+# Any params inserted below will override those listed above
+

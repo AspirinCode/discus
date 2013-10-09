@@ -1,0 +1,3 @@
+# ignore gedit temp files
+*.*~
+config.php
