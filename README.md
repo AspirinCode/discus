@@ -13,5 +13,5 @@ Database System for Compound Selection
 * MyChem database cartridge
 
 ###1.2. Client Side:
-* Modern web browser: Chrome, Firefox, IE 10+ might work, but it's not tested on regular bases
+* Modern web browser: Chrome, Firefox, IE 10+ might work, but it's not tested on regular basis
 
