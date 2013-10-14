@@ -253,17 +253,13 @@ $('input[name^="invert"]').click(function() {
 // select all button
 $('input[name^="selall"]').click(function() {
 	if($(this).is(':checkbox')) {
-		var get_selection = $(this).attr('checked');
-		// hack undefined atribute
-		if(!get_selection) {
-			get_selection = false
-		}
+		var get_selection = $(this).prop('checked');
 	}
 	else {
-		var get_selection = !$('input[name="'+$(this).attr('name').replace('selall-', '')+'"]').first().attr('checked');
+		var get_selection = !$('input[name="'+$(this).attr('name').replace('selall-', '')+'"]').first().prop('checked');
 	}
-	$('input[name="'+$(this).attr('name').replace('selall-', '')+'"]').each(function () {
-		$(this).attr('checked', get_selection);
+	$('input[name^="'+$(this).attr('name').replace('selall-', '')+'"]').each(function () {
+		$(this).prop('checked', get_selection);
 	});
 });
 
