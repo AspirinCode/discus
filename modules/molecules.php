@@ -1304,6 +1304,9 @@ class molecules extends base {
 		$target_id = (int) $this -> Database -> secure_mysql($_GET['target_id'] ? $_GET['target_id'] : $_POST['target_id']);
 		$query_id = (int) $this -> Database -> secure_mysql($_GET['query_id'] ? $_GET['query_id'] : $_POST['query_id']);
 		
+		$sort = $this -> Database -> secure_mysql($_GET['sort']);
+		$sort_type = $this -> Database -> secure_mysql($_GET['sort_type']);
+		
 		$query = 'SELECT name, mol2 FROM '.$this -> project.'docking_targets WHERE id = '.$target_id.';';
 		$this -> Database -> query($query);
 		$row = $this -> Database -> fetch_row();
@@ -1430,7 +1433,7 @@ class molecules extends base {
 			$this -> result_num = $this -> Database -> fetch_row()[0];
 			
 			# get similar binders
-			$query = 'SELECT '.implode(', ', $fields).', '.implode('+',$match_count_sql).' AS score FROM '.$this -> project.'docking_conformations AS conf '.implode(' ', $sql_join).' WHERE mol2 IS NOT NULL '.(!empty($query_id) ? 'AND conf.id != "'.$query_id.'"' : '' ).' AND ('.implode(' OR ', $match_sql).') '.(!empty($sql_var) ? 'AND '.implode('AND', $sql_var) : '').' ORDER BY score DESC, length(hbond_acceptor) DESC LIMIT '.(($this -> page - 1) * $this -> per_page).','.($this -> per_page).';';
+			$query = 'SELECT '.implode(', ', $fields).', '.implode('+',$match_count_sql).' AS score FROM '.$this -> project.'docking_conformations AS conf '.implode(' ', $sql_join).' WHERE mol2 IS NOT NULL '.(!empty($query_id) ? 'AND conf.id != "'.$query_id.'"' : '' ).' AND ('.implode(' OR ', $match_sql).') '.(!empty($sql_var) ? 'AND '.implode('AND', $sql_var) : '').' HAVING score > 0 ORDER BY '.(!empty($sort) ? $sort.' '.$sort_type : 'score DESC').' LIMIT '.(($this -> page - 1) * $this -> per_page).','.($this -> per_page).';';
 			#echo $query.'</br>';
 			$this -> Database -> query($query);
 			while ($row = $this -> Database -> fetch_assoc()) {
@@ -3457,7 +3460,7 @@ class molecules extends base {
 					}			
 					echo '<a href="'.$this -> get_link($sub).'">'.$field[1].' '.$arrow.'</a></th>';
 					if ($field[0] == name) {
-						echo '</th><th class="action">Binding profile <div class="badge badge-inverse binding_profile_info"><i class="icon-info-sign icon-white"></i></div>';
+						echo '</th><th class="action"><a href="'.$this -> get_link(array('sort' => 'score', 'sort_type' => 'desc', 'page' => 1)).'">Binding profile</a> <div class="badge badge-inverse binding_profile_info"><i class="icon-info-sign icon-white"></i></div>';
 						# show the crude/precise switch only if needed
 						if(in_array('crude', (array) $_GET['int_mode'])) {
 							echo '<div class="badge badge-warning"><input name="crude-checkbox" type="checkbox"> precise only</div>';
