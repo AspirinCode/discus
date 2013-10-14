@@ -477,7 +477,8 @@ class molecules extends base {
 			$this -> result_num = $this -> Database -> num_rows();
 			$this -> Database -> free_result();
 		
-			# add mol_id for future reference
+			# add conf_id and mol_id for future reference
+			$fields[] = 'conf.id AS conf_id';
 			$fields[] = 'conf.mol_id';
 			
 			# add mol2 to display in JSmol
@@ -3267,7 +3268,7 @@ class molecules extends base {
 										echo '<div class="binding_profile spacer"></div>';
 									}
 									echo '<button type="button" class="binding_profile_preview btn btn-mini"><i class="icon-search"></i></button>';
-									echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini">Find Similar</a></a>';
+									echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini">Find Similar</a>';
 								}
 								else {
 									echo '<span class="label label-warning">No interactions found</span>';
@@ -3532,7 +3533,7 @@ class molecules extends base {
 										echo '<div class="binding_profile spacer"></div>';
 									}
 									echo '<button type="button" class="binding_profile_preview btn btn-mini"><i class="icon-search"></i></button>';
-									echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini">Find Similar</a></a>';
+									echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini">Find Similar</a>';
 								}
 								else {
 									echo '<span class="label label-warning">No interactions found</span>';
@@ -4604,7 +4605,7 @@ class molecules extends base {
 						if ($field[0] == name) {
 							# index field
 							echo '<th>#</th>';
-							echo '<th><input type="checkbox" name="selall-mol_ids[]"/></th><th>';
+							echo '<th><input type="checkbox" name="selall-'.(!empty($_GET['disable_mol_grouping']) ? 'conf_ids[]' : 'mol_ids[]').'"/></th><th>';
 						}
 						else {
 							echo '<th>';
@@ -4681,7 +4682,9 @@ class molecules extends base {
 											# index field
 											echo '<td id="mol-num-'.$mol[$tid]['mol_id'].'" class="normal" rowspan='.count($mol).'>'.((($this -> page - 1) * $this -> per_page)+$n+1).'</td>';
 											# show checkbox
-											echo '<td id="mol-toggle-'.$mol[$tid]['mol_id'].'"  class="normal" rowspan='.count($mol).'><input type="checkbox" name="mol_ids[]" value="'.$mol[$tid]['mol_id'].'" /></td>';
+											echo '<td id="mol-toggle-'.$mol[$tid]['mol_id'].'"  class="normal" rowspan='.count($mol).'>';
+											echo '<input type="checkbox" name="'.(!empty($_GET['disable_mol_grouping']) ? 'conf_ids[]' : 'mol_ids[]').'" value="'.(!empty($_GET['disable_mol_grouping']) ? $mol[$tid]['conf_id'] : $mol[$tid]['mol_id']).'" />';
+											echo '</td>';
 											$img_size_prev = 100; # small IMG size
 											$img_size_big = 300;
 											echo '<td id="mol-image-'.$mol[$tid]['mol_id'].'" rowspan='.count($mol).'>';
