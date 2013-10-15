@@ -305,10 +305,16 @@ div.binding_profile {
 	padding:  0px 1px 0px 0px;
 	display: inline-block;
 	background-color: white;
+	vertical-align: middle;
 }
 
 div.binding_profile_residue {
 	display: inline-block;
+	vertical-align: middle;
+}
+
+.binding_profile_preview {
+	margin-left: 5px;
 }
 
 div.spacer {
@@ -316,6 +322,7 @@ div.spacer {
 	background-color: black;
 	margin: 0px 0px 0px -1px;
 	display: inline-block;
+	vertical-align: middle;
 }
 
 div.hbond_acceptor {
