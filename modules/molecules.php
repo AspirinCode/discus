@@ -4390,6 +4390,20 @@ class molecules extends base {
 				}
 				echo '</li>';
 			}
+			elseif($this -> result_num > 0) {
+				echo '<li class="dropdown pull-right"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>';
+				echo '<ul class="dropdown-menu">';
+				echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
+				echo '<ul class="dropdown-menu selected-download">';
+				foreach($formats as $format) {
+					echo '<li><a href="">'.$format.'</a></li>';
+				}
+			       	echo '</ul>';
+			       	echo '</li>';
+			       	
+			       	echo '</ul>';
+				echo '</li>';
+			}
 	 		
 	 		echo '</ul>';
 	 		?>
