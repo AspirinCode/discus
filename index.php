@@ -156,23 +156,28 @@ else {
 $(function() {
 	$('#modal > .modal-footer > button').click(function() {
 		var button = $(this);
-		if(!$(this).hasClass('disabled')) {
-			$('#modal > .modal-body > form').ajaxSubmit( {
-				target : $('#modal > .modal-body'),
-				success: function() {
-					if($('#modal > .modal-body > form').length > 0) {
-						button.removeClass('disabled').addClass('btn-success').html('Submit');
+		if($('#modal > .modal-body > form').length > 0) {
+			if(!$(this).hasClass('disabled')) {
+				$('#modal > .modal-body > form').ajaxSubmit( {
+					target : $('#modal > .modal-body'),
+					success: function() {
+						if($('#modal > .modal-body > form').length > 0) {
+							button.removeClass('disabled').addClass('btn-success').html('Submit');
+						}
+						else {
+							button.hide()
+						}
 					}
-					else {
-						button.hide()
-					}
-				}
-			});
-			// add progress bar
-			$('#modal > .modal-body').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div>');
+				});
+				// add progress bar
+				$('#modal > .modal-body').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div>');
 			
+			}
+			$(this).addClass('disabled').removeClass('btn-success').html('loading...');
 		}
-		$(this).addClass('disabled').removeClass('btn-success').html('loading...');
+		else {
+			$('#modal').modal('hide');
+		}
 	});
 	
 	//modal header modification
