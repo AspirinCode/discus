@@ -4074,6 +4074,8 @@ class molecules extends base {
 		echo '</br>';
 		echo '</br>';
 		
+		echo '<label class="checkbox"><input type="checkbox" name="enable_preview" value="1" '.(!empty($_GET['enable_preview']) ? 'checked': '').'> Show receptor structure with docked conformation</label>';
+		
 		echo '<label class="checkbox"><input type="checkbox" name="disable_mol_grouping" value="1" '.(!empty($_GET['disable_mol_grouping']) ? 'checked': '').'> Disable conformation grouping</label>';
 		
 		echo '</br>';
@@ -4586,7 +4588,7 @@ class molecules extends base {
 				# show pages
 				$this -> pagination();
 
-				if(count($this -> target) == 1) {
+				if(!empty($_GET['enable_preview']) && count($this -> target) == 1) {
 					# get target structure
 					$target_id = $this -> target[0];
 					$query = 'SELECT mol2 FROM '.$this -> project.'docking_targets WHERE id = '.$target_id.';';
@@ -4883,7 +4885,7 @@ class molecules extends base {
 				echo '</tr></table>';
 				echo '</form>';
 				
-				if(count($this -> target) == 1) {
+				if(!empty($_GET['enable_preview']) && count($this -> target) == 1) {
 					# highlight first conformation
 					echo '<script>showClickedConformation(1);max_id='.($n).'</script>';
 					echo '</div>';
