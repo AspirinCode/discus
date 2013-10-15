@@ -48,7 +48,7 @@ class user_management extends base {
 			#generate salt
 			$salt = substr(md5(time()*rand()*mt_rand()),0,8);
 			$password = sha1($salt.$_POST['pass']);
-			$query = 'INSERT INTO '.$CONFIG['db_name'].'.docking_users (`login`, `password`, `salt`, `fullname`) VALUES ("'.$this -> Database -> secure_mysql($_POST['login']).'", "'.$password.'", "'.$salt.'", "'.$this -> Database -> secure_mysql($_POST['fullname']).'");';
+			$query = 'INSERT INTO '.$CONFIG['db_name'].'.docking_users (`login`, `password`, `salt`, `fullname`, `gid`) VALUES ("'.$this -> Database -> secure_mysql($_POST['login']).'", "'.$password.'", "'.$salt.'", "'.$this -> Database -> secure_mysql($_POST['fullname']).'", '.((int)$_POST['gid']).');';
 			#echo $query;
 			
 			if($this -> Database -> query($query)) {
@@ -124,6 +124,13 @@ class user_management extends base {
 			echo '<div class="control-group"><div class="controls"><input type="password" name="pass" class="input" placeholder="Password"></div></div>';
 			echo '<div class="control-group"><div class="controls"><input type="password" name="pass_rep" class="input" placeholder="Repeat Password"></div></div>';
 			
+			echo 'Group:</br>';
+			echo '<select name="gid">';
+			echo '<option value=0>User</option>';
+			echo '<option value=1>Admin</option>';
+			echo '</select>';
+			echo '</br>';
+			echo '</br>';
 			
 			echo 'Asign user to following projects:</br>';
 			echo '<select multiple="multiple" name="project_asign[]">';
