@@ -4326,30 +4326,63 @@ class molecules extends base {
 			# list of available formats
 			$formats = array('chimera', 'mol2', 'sdf', 'pdb', 'pdbqt');
 		
-			if($this -> result_num > 0 && in_array($_GET['mode'], array('search', 'cheminformatics'))) {
+			if($this -> result_num > 0) {
 				echo '<li class="dropdown pull-right"><a href="#" class="dropdown-toggle" data-toggle="dropdown">User Subsets <b class="caret"></b></a>';
 				echo '<ul class="dropdown-menu">';
-			
+				
+				$user_subsets = array();
 				$query = 'SELECT * FROM '.$this -> project.'docking_user_subset';
 				$this -> Database -> query($query);
-				if($this -> Database -> num_rows() > 0) {	
+				if($this -> Database -> num_rows() > 0) {
+					while($row = $this -> Database -> fetch_assoc()) {
+						$user_subsets[] = $row;
+					}
+				}
+				
+				if(!empty($user_subsets)) {
+					if(in_array($_GET['mode'], array('search', 'cheminformatics'))) {
+						echo '<li class="dropdown-submenu"><a href="#">Query</a>';
+						echo '<ul class="dropdown-menu">';
+					
+						echo '<li class="dropdown-submenu"><a href="#">Add to subset</a>';
+						echo '<ul class="dropdown-menu">';
+						foreach($user_subsets as $us) {	
+							echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add', 'subset_id_add' => $us['id'])).'">'.$us['name'].'</a></li>';
+						}
+						echo '</ul>';
+						echo '</li>';
+	
+						echo '<li class="dropdown-submenu"><a href="#">Remove from subset</a>';
+						echo '<ul class="dropdown-menu">';
+						foreach($user_subsets as $us) {	
+							echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_del', 'subset_id_del' => $us['id'])).'">'.$us['name'].'</a></li>';
+						}
+						echo '</ul>';
+						echo '</li>';
+					
+						echo '</ul>';
+						echo '</li>';
+					}
+					
+					echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
+					echo '<ul class="dropdown-menu">';
+					
 					echo '<li class="dropdown-submenu"><a href="#">Add to subset</a>';
 					echo '<ul class="dropdown-menu">';
-					while($row = $this -> Database -> fetch_assoc()) {
-						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add', 'subset_id_add' => $row['id'])).'">'.$row['name'].'</a></li>';
+					foreach($user_subsets as $us) {	
+						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add_selected', 'subset_id_add' => $us['id'])).'">'.$us['name'].'</a></li>';
 					}
 					echo '</ul>';
 					echo '</li>';
-				}
-				
-				$query = 'SELECT * FROM '.$this -> project.'docking_user_subset';
-				$this -> Database -> query($query);
-				if($this -> Database -> num_rows() > 0) {	
+	
 					echo '<li class="dropdown-submenu"><a href="#">Remove from subset</a>';
 					echo '<ul class="dropdown-menu">';
-					while($row = $this -> Database -> fetch_assoc()) {
-						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_del', 'subset_id_del' => $row['id'])).'">'.$row['name'].'</a></li>';
+					foreach($user_subsets as $us) {	
+						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_del_selected', 'subset_id_del' => $us['id'])).'">'.$us['name'].'</a></li>';
 					}
+					echo '</ul>';
+					echo '</li>';
+					
 					echo '</ul>';
 					echo '</li>';
 				}
@@ -4445,6 +4478,7 @@ class molecules extends base {
 	 		$(function() {
 	 			$('ul.selected-download > li > a').click(function(e) {
 	 				e.preventDefault();
+	 				$('form[name="selection-form"] > input[name="mode"]').val('download_molecule');
 	 				$('form[name="selection-form"] > input[name="format"]').val($(this).text())
 	 				if($(this).attr('href') > 0) {
 	 					$('form[name="selection-form"] > input[name="target_id"]').val($(this).attr('href'))
