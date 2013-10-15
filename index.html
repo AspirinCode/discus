@@ -39,13 +39,15 @@
         </div>
 
         <h1>
-<a name="discus---database-system-for-compound-selection" class="anchor" href="#discus---database-system-for-compound-selection"><span class="octicon octicon-link"></span></a>DiSCuS - Database System for Compound Selection</h1>
+<a name="discus" class="anchor" href="#discus"><span class="octicon octicon-link"></span></a>DiSCuS</h1>
+
+<p>Database System for Compound Selection</p>
+
+<h2>
+<a name="1-system-requirements" class="anchor" href="#1-system-requirements"><span class="octicon octicon-link"></span></a>1. System requirements:</h2>
 
 <h3>
-<a name="system-requirements" class="anchor" href="#system-requirements"><span class="octicon octicon-link"></span></a>System requirements:</h3>
-
-<h3>
-<a name="server-side" class="anchor" href="#server-side"><span class="octicon octicon-link"></span></a>Server side:</h3>
+<a name="11-server-side" class="anchor" href="#11-server-side"><span class="octicon octicon-link"></span></a>1.1. Server side</h3>
 
 <ul>
 <li>Openbabel + PHP/Python Bindings</li>
@@ -55,11 +57,77 @@
 <li>MySQL (or MariaDB, Percona)</li>
 <li>MyChem database cartridge</li>
 </ul><h3>
-<a name="client-side" class="anchor" href="#client-side"><span class="octicon octicon-link"></span></a>Client side:</h3>
+<a name="12-client-side" class="anchor" href="#12-client-side"><span class="octicon octicon-link"></span></a>1.2. Client Side:</h3>
 
 <ul>
 <li>Modern web browser: Chrome, Firefox, IE 10+ might work, but it's not tested on regular basis</li>
-</ul>
+</ul><h2>
+<a name="2-installation" class="anchor" href="#2-installation"><span class="octicon octicon-link"></span></a>2. Installation</h2>
+
+<h3>
+<a name="21-debian-wheezy" class="anchor" href="#21-debian-wheezy"><span class="octicon octicon-link"></span></a>2.1 Debian Wheezy</h3>
+
+<p>2.1.1. Install dependencies</p>
+
+<blockquote>
+<p>apt-get install php5 php5-dev php5-xcache apache2 phpmyadmin mysql-server libmysqld-dev  libmysqlclient-dev git swig cmake</p>
+</blockquote>
+
+<p>2.1.2. (optional) bonjour to resolve host names </p>
+
+<blockquote>
+<p>apt-get -y install avahi-daemon libnss-mdns</p>
+</blockquote>
+
+<p>2.1.3. Install dependencies for OB compilation</p>
+
+<blockquote>
+<p>apt-get -y build-dep openbabel</p>
+</blockquote>
+
+<p>2.1.4. Download Openbabel and Mychem (using discus-deploy repository)</p>
+
+<blockquote>
+<p>git clone --recursive <a href="https://github.com/mwojcikowski/discus-deploy.git">https://github.com/mwojcikowski/discus-deploy.git</a> discus-deploy</p>
+</blockquote>
+
+<p>2.1.5. Compile and global install Openbabel and Mychem</p>
+
+<blockquote>
+<p>cd discus-deploy</p>
+
+<p>./compile_ob</p>
+
+<p>cd openbabel-build &amp;&amp; make install &amp;&amp; cd ..</p>
+
+<p>./compile_mychem</p>
+
+<p>cd mychem-build &amp;&amp; make install &amp;&amp; cd ..</p>
+
+<p>mysql -u root -p &lt; mychem/src/mychemdb.sql</p>
+</blockquote>
+
+<p>2.1.6. Create MySQL user for DiSCuS</p>
+
+<p>You can do it via CLI or via PhpMyAdmin</p>
+
+<p>2.1.7. Get DiSCuS code</p>
+
+<blockquote>
+<p>cd /var/www</p>
+
+<p>git clone <a href="https://github.com/mwojcikowski/discus.git">https://github.com/mwojcikowski/discus.git</a> discus</p>
+</blockquote>
+
+<p>2.1.8. Open your instance of DiSCuS in web browser and proceed with installation.</p>
+
+<blockquote>
+<p>http://YOUR_HOSTNAME_OR_IP/discus/</p>
+</blockquote>
+
+<p>2.1.9. DiSCuS is ready for use</p>
+
+<p>Note: additional setup might be necessary for some plugins, f.e. you must get and copy your Xscore code, install Tripos Sybyl on host, etc.</p>
       </section>
 
     </div>
