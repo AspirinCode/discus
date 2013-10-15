@@ -314,22 +314,44 @@ $("img.mol").hover(function() {
 // binding profile
 $('div.binding_profile_residue').hover(function() {
 	//$(this).animate( { "opacity" : .3 }, 50);
+	if($('button.binding_profile_preview.btn-success').length > 0) {
+		// check if is highlighted as interaction
+		if($('#'+$(this).attr('id'), $('button.binding_profile_preview.btn-success').parent()).children('div.interaction').length > 0) {
+			style = ['wireframe 50', 'label "%[group]%[resno]"'];
+		}
+		else {
+			style = ['color cpk', 'wireframe 50', 'label "%[group]%[resno]"'];
+		}
+	}
+	else {
+		style = ['wireframe 50', 'label "%[group]%[resno]"'];
+	}	
 	$(this).stop(true,true).animate( { "opacity" : .3 }, 50).delay(500).queue(function() {
 		if($(this).attr('id')) {
-			script = [	'select 1.1 resno = ' + $(this).attr('id'),
-					'wireframe 50'];
+			script = ['select 1.1 resno = ' + $(this).attr('id'), style.join("; ")];
 			Jmol.script(jmolApplet0,script.join("; "));
 		}
 	});
 }, function() {
+	if($('button.binding_profile_preview.btn-success').length > 0) {
+		// check if is highlighted as interaction
+		if($('#'+$(this).attr('id'), $('button.binding_profile_preview.btn-success').parent()).children('div.interaction').length > 0) {
+			style = ['wireframe 30', 'label off'];
+		}
+		else {
+			style = ['color darkblue', 'wireframe', 'label off'];
+		}
+	}
+	else {
+		style = ['wireframe', 'label off'];
+	}
 	if($(this).queue().length > 1) {
 		$(this).stop(true,true).animate( { "opacity" : 1 }, 50);
 	}
 	else {
 		$(this).stop(true,true).animate( { "opacity" : 1 }, 50).delay(100).queue(function() {
 			if($(this).attr('id')) {
-				script = [	'select 1.1 resno = ' + $(this).attr('id'),
-						'wireframe'];
+				script = ['select 1.1 resno = ' + $(this).attr('id'), style.join("; ")];
 				Jmol.script(jmolApplet0,script.join("; "));
 			}
 		});
