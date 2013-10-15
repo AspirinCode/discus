@@ -1478,9 +1478,21 @@ class molecules extends base {
 	public function subset_add() {
 		# get project name and use it as table name
 		$this -> get_project_db();
-		$user_subset = (int) (!empty($_POST['subset_id_add']) ? $_POST['subset_id_add'] : (!empty($_GET['subset_id_add']) ? $_GET['subset_id_add']: null));
+		$user_subset = (int) $_GET['subset_id_add'];
 		if(!empty($user_subset)) {	
-			$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) SELECT '.($user_subset).', id FROM ('.$this -> search_sql(true).') as temp;';
+			$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) SELECT '.($user_subset).', id FROM ('.$this -> search_sql(true).') AS temp;';
+			#echo $query.'</br>';
+			$this -> Database -> query($query);
+			$this -> num = $this -> Database -> affected_rows();
+		}
+	}
+	
+	public function subset_del() {
+		# get project name and use it as table name
+		$this -> get_project_db();
+		$user_subset = (int) $_GET['subset_id_del'];
+		if(!empty($user_subset)) {
+			$query = 'DELETE FROM '.$this -> project.'docking_user_subset_members WHERE user_subset_id = '.($user_subset).' AND conf_id IN(SELECT id FROM ('.$this -> search_sql(true).') AS temp);';
 			#echo $query.'</br>';
 			$this -> Database -> query($query);
 			$this -> num = $this -> Database -> affected_rows();
@@ -2274,7 +2286,17 @@ class molecules extends base {
 	# HTML goes below
 	
 	public function view_subset_add() {
-		echo 'You have added '.$this -> num.' conformations to user subset. <a href="'.$this -> get_link(array('mode' => 'search')).'">Go back to your query</a>.';
+		echo 'You have added '.$this -> num.' conformations to user subset.';
+		if(!IS_AJAX) {
+			echo '<a href="'.$this -> get_link(array('mode' => 'search')).'">Go back to your query</a>.';
+		}
+	}
+	
+	public function view_subset_del() {
+		echo 'You have removed '.$this -> num.' conformations from user subset.';
+		if(!IS_AJAX) {
+			echo '<a href="'.$this -> get_link(array('mode' => 'search')).'">Go back to your query</a>.';
+		}
 	}
 	
 	public function draw_rocs_chart($chart = null) {
@@ -4314,7 +4336,19 @@ class molecules extends base {
 					echo '<li class="dropdown-submenu"><a href="#">Add to subset</a>';
 					echo '<ul class="dropdown-menu">';
 					while($row = $this -> Database -> fetch_assoc()) {
-						echo '<li><a href="'.$this -> get_link(array('mode' => 'subset_add', 'subset_id_add' => $row['id'])).'">'.$row['name'].'</a></li>';
+						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add', 'subset_id_add' => $row['id'])).'">'.$row['name'].'</a></li>';
+					}
+					echo '</ul>';
+					echo '</li>';
+				}
+				
+				$query = 'SELECT * FROM '.$this -> project.'docking_user_subset';
+				$this -> Database -> query($query);
+				if($this -> Database -> num_rows() > 0) {	
+					echo '<li class="dropdown-submenu"><a href="#">Remove from subset</a>';
+					echo '<ul class="dropdown-menu">';
+					while($row = $this -> Database -> fetch_assoc()) {
+						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_del', 'subset_id_del' => $row['id'])).'">'.$row['name'].'</a></li>';
 					}
 					echo '</ul>';
 					echo '</li>';
