@@ -3264,33 +3264,35 @@ class molecules extends base {
 								if(!empty($this -> binding_profile) && !empty($binding_profile)) {
 									echo '<div class="binding_profile spacer"></div>';
 									foreach($this -> binding_profile as $rid => $res) {
-										echo '<div id="'.$rid.'" class="binding_profile_residue">';
-										if(!empty($res['precise'])) {
-											foreach($res['precise'] as $inter_id => $interaction) {
-												if(!empty($binding_profile[$rid]['precise'][$inter_id])) {
-													echo '<div class="binding_profile interaction '.$binding_profile[$rid]['precise'][$inter_id][1].'"></div>';
-												}
-												else {
-													echo '<div class="binding_profile"></div>';
-												}
-											}
-										}
-										if(!empty($res['crude'])) {
-											foreach($res['crude'] as $inter_id => $interaction) {
-												if(!empty($binding_profile[$rid]['crude'][$inter_id])) {
-													echo '<div class="binding_profile interaction '.$binding_profile[$rid]['crude'][$inter_id][1].' crude"></div>';
-												}
-												else {
-													echo '<div class="binding_profile crude"></div>';
+										if(!empty($res['precise']) || !empty($res['crude'])) {
+											echo '<div id="'.$rid.'" class="binding_profile_residue">';
+											if(!empty($res['precise'])) {
+												foreach($res['precise'] as $inter_id => $interaction) {
+													if(!empty($binding_profile[$rid]['precise'][$inter_id])) {
+														echo '<div class="binding_profile interaction '.$binding_profile[$rid]['precise'][$inter_id][1].'"></div>';
+													}
+													else {
+														echo '<div class="binding_profile"></div>';
+													}
 												}
 											}
+											if(!empty($res['crude'])) {
+												foreach($res['crude'] as $inter_id => $interaction) {
+													if(!empty($binding_profile[$rid]['crude'][$inter_id])) {
+														echo '<div class="binding_profile interaction '.$binding_profile[$rid]['crude'][$inter_id][1].' crude"></div>';
+													}
+													else {
+														echo '<div class="binding_profile crude"></div>';
+													}
+												}
+											}
+											echo '</div>';
+											#add spacer
+											echo '<div class="binding_profile spacer"></div>';
 										}
-										echo '</div>';
-										#add spacer
-										echo '<div class="binding_profile spacer"></div>';
 									}
-									echo '<button type="button" class="binding_profile_preview btn btn-mini"><i class="icon-search"></i></button>';
-									echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini">Find Similar</a>';
+									echo '<button type="button" class="binding_profile_preview btn btn-mini" style="vertical-align:top;"><i class="icon-search"></i></button>';
+									echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini" style="vertical-align:top;">Find Similar</a>';
 								}
 								else {
 									echo '<span class="label label-warning">No interactions found</span>';
@@ -3529,33 +3531,35 @@ class molecules extends base {
 								if(!empty($this -> binding_profile) && !empty($binding_profile)) {
 									echo '<div class="binding_profile spacer"></div>';
 									foreach($this -> binding_profile as $rid => $res) {
-										echo '<div id="'.$rid.'" class="binding_profile_residue">';
-										if(!empty($res['precise'])) {
-											foreach($res['precise'] as $inter_id => $interaction) {
-												if(!empty($binding_profile[$rid]['precise'][$inter_id])) {
-													echo '<div class="binding_profile interaction '.$binding_profile[$rid]['precise'][$inter_id][1].'"></div>';
-												}
-												else {
-													echo '<div class="binding_profile"></div>';
-												}
-											}
-										}
-										if(!empty($res['crude'])) {
-											foreach($res['crude'] as $inter_id => $interaction) {
-												if(!empty($binding_profile[$rid]['crude'][$inter_id])) {
-													echo '<div class="binding_profile interaction '.$binding_profile[$rid]['crude'][$inter_id][1].' crude"></div>';
-												}
-												else {
-													echo '<div class="binding_profile crude"></div>';
+										if(!empty($res['precise']) || !empty($res['crude'])) {
+											echo '<div id="'.$rid.'" class="binding_profile_residue">';
+											if(!empty($res['precise'])) {
+												foreach($res['precise'] as $inter_id => $interaction) {
+													if(!empty($binding_profile[$rid]['precise'][$inter_id])) {
+														echo '<div class="binding_profile interaction '.$binding_profile[$rid]['precise'][$inter_id][1].'"></div>';
+													}
+													else {
+														echo '<div class="binding_profile"></div>';
+													}
 												}
 											}
+											if(!empty($res['crude'])) {
+												foreach($res['crude'] as $inter_id => $interaction) {
+													if(!empty($binding_profile[$rid]['crude'][$inter_id])) {
+														echo '<div class="binding_profile interaction '.$binding_profile[$rid]['crude'][$inter_id][1].' crude"></div>';
+													}
+													else {
+														echo '<div class="binding_profile crude"></div>';
+													}
+												}
+											}
+											echo '</div>';
+											#add spacer
+											echo '<div class="binding_profile spacer"></div>';
 										}
-										echo '</div>';
-										#add spacer
-										echo '<div class="binding_profile spacer"></div>';
 									}
-									echo '<button type="button" class="binding_profile_preview btn btn-mini"><i class="icon-search"></i></button>';
-									echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini">Find Similar</a>';
+									echo '<button type="button" class="binding_profile_preview btn btn-mini" style="vertical-align:top;"><i class="icon-search"></i></button>';
+									echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini" style="vertical-align:top;">Find Similar</a>';
 								}
 								else {
 									echo '<span class="label label-warning">No interactions found</span>';

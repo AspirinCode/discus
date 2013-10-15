@@ -303,19 +303,19 @@ div.binding_profile {
 	height: 25px;
 	margin: 0px 1px 0px 0px;
 	padding:  0px 1px 0px 0px;
-	float: left;
+	display: inline-block;
 	background-color: white;
-	white-space:nowrap;
 }
 
 div.binding_profile_residue {
-	float: left;
+	display: inline-block;
 }
 
 div.spacer {
 	width: 0px;
 	background-color: black;
-	margin: 0px -1px;
+	margin: 0px 0px 0px -1px;
+	display: inline-block;
 }
 
 div.hbond_acceptor {
