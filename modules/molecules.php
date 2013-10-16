@@ -4389,9 +4389,12 @@ class molecules extends base {
 						}
 						echo '</ul>';
 						echo '</li>';
-					
+						
+						echo '<li class="divider"></li>';
+						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'" class="create_subset">Create new subset</a></li>';
 						echo '</ul>';
 						echo '</li>';
+						
 					}
 					
 					echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
@@ -4413,11 +4416,12 @@ class molecules extends base {
 					echo '</ul>';
 					echo '</li>';
 					
+					echo '<li class="divider"></li>';
+					echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'" class="create_subset_selected">Create new subset</a></li>';
+					
 					echo '</ul>';
 					echo '</li>';
 				}
-				echo '<li class="divider"></li>';
-				echo '<li><a href="#" onClick="create_subset(\''.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'\')">Create new subset</a></li>';
 			       	echo '</ul>';
 				echo '</li>';
 		
@@ -4454,7 +4458,6 @@ class molecules extends base {
 			       	}
 			       	echo '</ul>';
 			       	echo '</li>';
-			
 			
 			       	echo '</ul>';
 				echo '</li>';
@@ -4529,6 +4532,38 @@ class molecules extends base {
 	 				}
 	 				
 	 				$(this).attr('href', $(this).attr('href').split(glue)[0] + glue + values.join(glue));
+	 			});
+	 			$('a.create_subset').click(function() {
+	 				subset_name = prompt('Choose name for new subset:');
+					if(subset_name) {
+						$(this).attr('href', $(this).attr('href').split("&subset_name=")[0] + "&subset_name=" + subset_name);
+					}
+					else {
+						e.preventDefault();
+					}
+	 			});
+	 			
+	 			$('a.create_subset_selected').click(function() {
+	 				var values = $('input:checked', $('form[name="selection-form"]')).map(function(){
+							return $(this).val();
+						}).get()
+	 				
+	 				if($('input:checked', $('form[name="selection-form"]')).attr('name') == 'mol_ids[]') {
+	 					var glue = '&mol_ids[]=';
+	 				}
+	 				else {
+	 					var glue = '&conf_ids[]=';
+	 				}
+	 				
+	 				$(this).attr('href', $(this).attr('href').split(glue)[0] + glue + values.join(glue));
+	 				
+	 				subset_name = prompt('Choose name for new subset:');
+					if(subset_name) {
+						$(this).attr('href', $(this).attr('href').split("&subset_name=")[0] + "&subset_name=" + subset_name);
+					}
+					else {
+						e.preventDefault();
+					}
 	 			});
 	 		});
 	 		//disable at load

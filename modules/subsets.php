@@ -34,7 +34,8 @@ class subsets extends base {
 			header('Location: '.$this -> get_link(array('module' => 'molecules','mode' => 'subset_add', 'subset_id_add' => $this -> Database -> insert_id())));
 		}
 		else {
-			header('Location: '.$this -> get_link(array('module' => 'molecules','mode' => 'search')));
+			#header('Location: '.$this -> get_link(array('module' => 'molecules','mode' => 'search')));
+			echo 'Emtpy subset name!';
 		}
 	}
 }

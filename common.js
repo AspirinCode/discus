@@ -16,13 +16,6 @@ function check_empty_field(form, field) {
 	}
 }
 
-function create_subset(link) {
-	subset_name = prompt('Choose name for new subset:');
-	if(subset_name && link != '') {
-		location.href=link + "&subset_name=" + subset_name;
-	}
-}
-
 function showClickedConformation(clicked_id) {
 	target = document.getElementById("row-conf-" + clicked_id);
 	highlited = document.getElementById("row-conf-" + highlighted_id);
