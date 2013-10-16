@@ -1479,8 +1479,19 @@ class molecules extends base {
 		# get project name and use it as table name
 		$this -> get_project_db();
 		$user_subset = (int) $_GET['subset_id_add'];
-		if(!empty($user_subset)) {	
-			$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) SELECT '.($user_subset).', id FROM ('.$this -> search_sql(true).') AS temp;';
+		if(!empty($user_subset)) {
+			if(!empty($_GET['conf_ids'])) {
+				foreach($_GET['conf_ids'] as $id) {
+					$sql[] = '('.($user_subset).', '.((int) $id).')';
+				}
+				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) VALUES '.implode(',', $sql).';';
+			}
+			elseif(!empty($_GET['mol_ids'])) {
+				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) SELECT '.($user_subset).', id FROM ('.$this -> search_sql(true).') AS temp WHERE mol_id IN ('.implode(',', array_map('intval', $_GET['mol_ids'])).');';
+			}
+			else {	
+				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) SELECT '.($user_subset).', id FROM ('.$this -> search_sql(true).') AS temp;';
+			}
 			#echo $query.'</br>';
 			$this -> Database -> query($query);
 			$this -> num = $this -> Database -> affected_rows();
@@ -1492,7 +1503,15 @@ class molecules extends base {
 		$this -> get_project_db();
 		$user_subset = (int) $_GET['subset_id_del'];
 		if(!empty($user_subset)) {
-			$query = 'DELETE FROM '.$this -> project.'docking_user_subset_members WHERE user_subset_id = '.($user_subset).' AND conf_id IN(SELECT id FROM ('.$this -> search_sql(true).') AS temp);';
+			if(!empty($_GET['conf_ids'])) {
+				$query = 'DELETE FROM '.$this -> project.'docking_user_subset_members WHERE user_subset_id = '.($user_subset).' AND conf_id IN('.implode(',', array_map('intval', $_GET['conf_ids'])).')';
+			}
+			elseif(!empty($_GET['mol_ids'])) {
+				$query = 'DELETE FROM '.$this -> project.'docking_user_subset_members WHERE user_subset_id = '.($user_subset).' AND conf_id IN(SELECT id FROM ('.$this -> search_sql(true).') AS temp WHERE temp.mol_id IN ('.implode(',', array_map('intval', $_GET['mol_ids'])).'));';
+			}
+			else {
+				$query = 'DELETE FROM '.$this -> project.'docking_user_subset_members WHERE user_subset_id = '.($user_subset).' AND conf_id IN(SELECT id FROM ('.$this -> search_sql(true).') AS temp);';
+			}
 			#echo $query.'</br>';
 			$this -> Database -> query($query);
 			$this -> num = $this -> Database -> affected_rows();
@@ -2899,6 +2918,7 @@ class molecules extends base {
 			echo '<input type="hidden" name="project" value="'.$project.'" />';
 			echo '<input type="hidden" name="mode" value="download_molecule" />';
 			echo '<input type="hidden" name="format" value="'.$_GET['format'].'" />';
+			echo '<input type="hidden" name="subset" value="'.$_GET['subset'].'" />';
 									
 			# show table
 			echo '<table class="molecules conformations"><thead><tr>';
@@ -3185,7 +3205,9 @@ class molecules extends base {
 			echo '<form name="selection-form" method=GET>';
 			echo '<input type="hidden" name="mode" value="download_molecule" />';
 			echo '<input type="hidden" name="project" value="'.$project.'" />';
-			echo '<input type="hidden" name="format" value="'.$_GET['format'].'" />';							
+			echo '<input type="hidden" name="format" value="'.$_GET['format'].'" />';
+			echo '<input type="hidden" name="subset" value="'.$_GET['subset'].'" />';
+										
 			# show table
 			echo '<table id="conformation-table" class="molecules conformations" cellspacing="0"><thead><tr>';
 			# get opposite sorting type
@@ -3448,7 +3470,9 @@ class molecules extends base {
 			echo '<form name="selection-form" method=GET>';
 			echo '<input type="hidden" name="mode" value="download_molecule" />';
 			echo '<input type="hidden" name="project" value="'.$project.'" />';
-			echo '<input type="hidden" name="format" value="'.$_GET['format'].'" />';							
+			echo '<input type="hidden" name="format" value="'.$_GET['format'].'" />';
+			echo '<input type="hidden" name="subset" value="'.$_GET['subset'].'" />';
+						
 			# show table
 			echo '<table id="conformation-table" class="molecules conformations" cellspacing="0"><thead><tr>';
 			# get opposite sorting type
@@ -4371,20 +4395,20 @@ class molecules extends base {
 					}
 					
 					echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
-					echo '<ul class="dropdown-menu">';
+					echo '<ul class="dropdown-menu selected-subset">';
 					
 					echo '<li class="dropdown-submenu"><a href="#">Add to subset</a>';
-					echo '<ul class="dropdown-menu">';
+					echo '<ul class="dropdown-menu selected-subset-add">';
 					foreach($user_subsets as $us) {	
-						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add_selected', 'subset_id_add' => $us['id'])).'">'.$us['name'].'</a></li>';
+						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add', 'subset_id_add' => $us['id'])).'">'.$us['name'].'</a></li>';
 					}
 					echo '</ul>';
 					echo '</li>';
 	
 					echo '<li class="dropdown-submenu"><a href="#">Remove from subset</a>';
-					echo '<ul class="dropdown-menu">';
+					echo '<ul class="dropdown-menu selected-subset-del">';
 					foreach($user_subsets as $us) {	
-						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_del_selected', 'subset_id_del' => $us['id'])).'">'.$us['name'].'</a></li>';
+						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_del', 'subset_id_del' => $us['id'])).'">'.$us['name'].'</a></li>';
 					}
 					echo '</ul>';
 					echo '</li>';
@@ -4396,6 +4420,8 @@ class molecules extends base {
 				echo '<li><a href="#" onClick="create_subset(\''.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'\')">Create new subset</a></li>';
 			       	echo '</ul>';
 				echo '</li>';
+		
+		
 		
 				echo '<li class="dropdown pull-right"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>';
 			
@@ -4432,7 +4458,6 @@ class molecules extends base {
 			
 			       	echo '</ul>';
 				echo '</li>';
-			
 			
 			}
 			elseif(in_array($_GET['mode'], array('molecule'))) {
@@ -4491,10 +4516,26 @@ class molecules extends base {
 	 				}
 	 				$('form[name="selection-form"]').submit();
 	 			});
+	 			$('ul.selected-subset-add > li > a, ul.selected-subset-del > li > a').click(function(e) {
+	 				var values = $('input:checked', $('form[name="selection-form"]')).map(function(){
+							return $(this).val();
+						}).get()
+	 				
+	 				if($('input:checked', $('form[name="selection-form"]')).attr('name') == 'mol_ids[]') {
+	 					var glue = '&mol_ids[]=';
+	 				}
+	 				else {
+	 					var glue = '&conf_ids[]=';
+	 				}
+	 				
+	 				$(this).attr('href', $(this).attr('href').split(glue)[0] + glue + values.join(glue));
+	 			});
 	 		});
 	 		//disable at load
 	 		$('ul.selected-download').hide();
 			$('ul.selected-download').parent('li').addClass('disabled');
+			$('ul.selected-subset').hide();
+			$('ul.selected-subset').parent('li').addClass('disabled');
 	 		</script> 		
 	 		<?php
 
@@ -4656,6 +4697,8 @@ class molecules extends base {
 				echo '<input type="hidden" name="project" value="'.$this -> project_id.'" />';	
 				echo '<input type="hidden" name="target_id" value="'.$this -> target[0].'" />';
 				echo '<input type="hidden" name="format" value="'.$_GET['type'].'" />';
+				echo '<input type="hidden" name="subset" value="'.$_GET['subset'].'" />';
+				
 				# show table
 				echo '<table class="molecules"><tr>';
 				# get opposite sorting type

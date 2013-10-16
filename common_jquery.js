@@ -264,16 +264,18 @@ $('input[name^="selall"]').click(function() {
 });
 
 // selection form downloads
-
-
 $('input[type="checkbox"]', $('form[name="selection-form"]')).click(function() {
 	if($('input:checked', $('form[name="selection-form"]')).length > 0) {
-		$('ul.selected-download').css('display', ''),
+		$('ul.selected-download').css('display', '');
 		$('ul.selected-download').parent('li').removeClass('disabled');
+		$('ul.selected-subset').css('display', '');
+		$('ul.selected-subset').parent('li').removeClass('disabled');
 	}
 	else {
 		$('ul.selected-download').hide();
 		$('ul.selected-download').parent('li').addClass('disabled');
+		$('ul.selected-subset').hide();
+		$('ul.selected-subset').parent('li').addClass('disabled');
 	}
 });
 
