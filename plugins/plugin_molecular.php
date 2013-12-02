@@ -24,7 +24,7 @@ along with DiSCuS.  If not, see <http://www.gnu.org/licenses/>.
 class plugin_molecular extends plugin_interface {
 	public static $name = 'Molecular Features';
 	public static $desc = 'Computes molecular features using OpenBabel';
-	public $batch_size = 0; # default size of batch, it's suppose to be as high as possible, although computation time should be lower than 10sec; 0 = unlimited
+	public $batch_size = 1000; # default size of batch, it's suppose to be as high as possible, although computation time should be lower than 10sec; 0 = unlimited
 	
 	public static $input = array('ligands' => 'obmol', 'receptor' => 'null');
 

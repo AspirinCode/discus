@@ -163,6 +163,12 @@ $(function() {
 					success: function() {
 						if($('#modal > .modal-body > form').length > 0) {
 							button.removeClass('disabled').addClass('btn-success').html('Submit');
+							// check for autoreload
+							if($('#modal > .modal-body > form > input[name="timeout"]').val() > 0) {
+								setTimeout(function() {
+									$('#modal > .modal-footer > button').trigger( "click" );
+								}, $('#modal > .modal-body > form > input[name="timeout"]').val())
+							}
 						}
 						else {
 							button.hide()
@@ -171,7 +177,6 @@ $(function() {
 				});
 				// add progress bar
 				$('#modal > .modal-body').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div>');
-			
 			}
 			$(this).addClass('disabled').removeClass('btn-success').html('loading...');
 		}
