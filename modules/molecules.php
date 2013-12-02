@@ -4219,7 +4219,7 @@ class molecules extends base {
 					echo '<ul class="dropdown-menu">';
 					$plugins = $this -> list_plugins();
 					foreach($plugins as $plugin) {
-						echo '<li><a data-toggle="modal" data-target="#modal"  href="'.$this -> get_link(array('module' => 'plugins', 'mode' => 'compute', 'plugin_name' => $plugin[0], 'target_id' => $row['tid'], 'ligand-subset' => $row['sid'], 'ajax' => 1), array(), array('project')).'">'.$plugin[1].'</a></li>';
+						echo '<li><a data-toggle="modal" data-target="#modal"  href="'.$this -> get_link(array('module' => 'plugins', 'mode' => 'compute', 'plugin_name' => $plugin[0], 'target_id' => $row['tid'], 'ligand_subset' => $row['sid'], 'ajax' => 1), array(), array('project')).'">'.$plugin[1].'</a></li>';
 					}
 					echo '</ul>';
 					echo '</div>';
