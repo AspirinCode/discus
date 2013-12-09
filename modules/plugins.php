@@ -100,7 +100,7 @@ class plugins extends base {
 				
 				# get ligands
 				$OBConversion->SetInAndOutFormats("mol2", $plugin_class_name::$input['ligands']);
-				$query = 'SELECT conf.id, conf.mol_id, UNCOMPRESS(conf.mol2) AS mol2 FROM '.$this -> project.'docking_conformations AS conf WHERE mol2 IS NOT NULL AND conf.target_id = '.$target_id.(!empty($ligand_subset) ? ' AND conf.ligand_subset = '.$ligand_subset : '').(empty($plugin_class_name::$result['conf']) ? ' GROUP BY conf.mol_id' : '').($batch_size > 0 && !empty($batch) ? ' LIMIT '.(($batch-1)*$batch_size).','.((($batch)*$batch_size)) : '').';';
+				$query = 'SELECT conf.id, conf.mol_id, UNCOMPRESS(conf.mol2) AS mol2 FROM '.$this -> project.'docking_conformations AS conf WHERE mol2 IS NOT NULL AND conf.target_id = '.$target_id.(!empty($ligand_subset) ? ' AND conf.ligand_subset = '.$ligand_subset : '').(empty($plugin_class_name::$result['conf']) ? ' GROUP BY conf.mol_id' : '').($batch_size > 0 && !empty($batch) ? ' LIMIT '.(($batch-1)*$batch_size).','.($batch*$batch_size) : '').';';
 				#echo $query.'</br>';
 				$this -> Database -> query($query);
 				while($row = $this -> Database -> fetch_assoc()) {
@@ -247,7 +247,7 @@ class plugins extends base {
 							$(function() {
 								setTimeout(function() {
 									$('#plugin_form').submit()
-								}, 3000);
+								}, $('#plugin_form > input[name="timeout"]').val());
 							});
 							</script>
 							<?php
