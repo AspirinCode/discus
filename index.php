@@ -171,7 +171,7 @@ $(function() {
 							}
 						}
 						else {
-							button.hide()
+							button.removeClass('disabled').addClass('btn-success').html('Close');
 						}
 					}
 				});
@@ -184,6 +184,12 @@ $(function() {
 			$('#modal').modal('hide');
 		}
 	});
+	
+	$('#modal').on('shown', function () {
+		if($('#modal > .modal-body > form').length == 0) {
+			$('#modal > .modal-footer > button').html('Close');
+		}
+	})
 	
 	//modal header modification
 	$('a[data-toggle="modal"]').click(function() {
