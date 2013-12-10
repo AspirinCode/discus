@@ -103,6 +103,9 @@ class data_management extends base {
 #		if($format == 'mol2') {
 #			$format = 'copy';
 #		}
+		$OBLog = openbabel::obErrorLog_get();
+		$OBLog -> StopLogging();
+
 		$OBMol = new OBMol;
 		$OBConversion = new OBConversion;
 		$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, 1);#($batch-1)*$batch_size+1);
@@ -116,11 +119,11 @@ class data_management extends base {
 			$string_mol2 = $OBConversion -> WriteString($OBMol);
 			
 #			$OBConversion -> SetOutFormat('smi');
-#			$OBConversion->AddOption("U");
-#			$OBConversion->AddOption("n");
+#			$OBConversion -> AddOption("U");
+#			$OBConversion -> AddOption("n");
 #			$smiles = trim($OBConversion -> WriteString($OBMol));
 #			
-#			$OBConversion -> SetOutFormat('mol2');
+#			$OBConversion -> SetOutFormat('inchikey');
 #			$OBConversion -> SetOptions('T"/nochg/nostereo"', $OBConversion::OUTOPTIONS);
 #			$inchi = trim($OBConversion -> WriteString($OBMol));
 			
@@ -709,6 +712,8 @@ class data_management extends base {
 			$this -> Database -> query($query);
 			# get new or current ligand_subset's id
 			$import_id = $this -> Database -> insert_id();
+			#free some memory
+			unset($query);
 			 
 			$mapping = !empty($_POST['mapping']) ? array_filter($_POST['mapping']) : array();
 			
@@ -743,7 +748,7 @@ class data_management extends base {
 				}
 #				else {				
 #					#get molecules properties
-#					$query = 'INSERT INTO '.$this -> project.'docking_molecules_properties (`id`, `smiles`, `mol2`) VALUES ("'.$mol_id.'", "'.$smiles.'", COMPRESS(\''.$this -> Database -> secure_mysql($this -> get_mol2($this -> mols[$mol_keys[0]][0])).'\'));';
+#					$query = 'INSERT INTO '.$this -> project.'docking_molecules (`id`, `smiles`, `mol2`) VALUES ("'.$mol_id.'", "'.$smiles.'", COMPRESS(\''.$this -> Database -> secure_mysql($this -> get_mol2($this -> mols[$mol_keys[0]][0])).'\'));';
 #					$this -> Database -> query($query);
 #				}
 				
@@ -793,6 +798,9 @@ class data_management extends base {
 			}
 			
 			echo 'Uploded '.count($mol_ids).' molecules.';
+			
+			echo memory_get_usage().'|'.memory_get_peak_usage().'</br>';
+			echo memory_get_usage(true).'|'.memory_get_peak_usage(true).'</br>';
 			
 			# remove files
 			if(is_file($this -> upload_dir.$this -> target_file)) {
