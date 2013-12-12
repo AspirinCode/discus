@@ -712,16 +712,16 @@ class data_management extends base {
 					$OBConversion -> SetInFormat('mol2');
 					$OBConversion -> ReadString($OBMol, gzuncompress(substr($mol2, 4)));
 					
-					$OBConversion -> SetOutFormat('smi');
-					$OBConversion -> AddOption("U");
-					$OBConversion -> AddOption("n");
-					$smiles = trim($OBConversion -> WriteString($OBMol));
-		
 					$OBConversion -> SetOutFormat('inchikey');
 #					$OBConversion -> SetOptions('T"/nochg/nostereo"', $OBConversion::OUTOPTIONS);
 					$inchi = preg_split('/[\r\n\s]+/', trim($OBConversion -> WriteString($OBMol)))[0];
 					
-					$query = 'INSERT INTO '.$this -> project.'docking_molecules (`name`, `smiles`, `inchikey`, `fp2`, `obmol`, `mol2`) VALUES ("'.$mol_name.'", "'.$smiles.'", "'.$inchi.'", FINGERPRINT2(SMILES_TO_MOLECULE("'.$smiles.'")), MOLECULE_TO_SERIALIZEDOBMOL(SMILES_TO_MOLECULE("'.$smiles.'")), "'.$this -> Database -> secure_mysql($mol2).'");';
+					$OBConversion -> SetOutFormat('smi');
+					$OBConversion -> AddOption("U");
+					$OBConversion -> AddOption("n");
+					$smiles = trim($OBConversion -> WriteString($OBMol));
+					
+					$query = 'INSERT IGNORE INTO '.$this -> project.'docking_molecules (`name`, `smiles`, `inchikey`, `fp2`, `obmol`, `mol2`) VALUES ("'.$mol_name.'", "'.$smiles.'", "'.$inchi.'", FINGERPRINT2(SMILES_TO_MOLECULE("'.$smiles.'")), MOLECULE_TO_SERIALIZEDOBMOL(SMILES_TO_MOLECULE("'.$smiles.'")), "'.$this -> Database -> secure_mysql($mol2).'");';
 					$this -> Database -> query($query);
 					# get new molecule's ID, store it for future reference
 					$mol_id = $this -> Database -> insert_id();
