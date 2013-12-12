@@ -108,8 +108,8 @@ class data_management extends base {
 
 		$OBMol = new OBMol;
 		$OBConversion = new OBConversion;
-		$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, 1);#($batch-1)*$batch_size+1);
-		$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, 100);#$batch*$batch_size);
+#		$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, 1);#($batch-1)*$batch_size+1);
+#		$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, 100);#$batch*$batch_size);
 		$OBConversion -> SetInFormat($format);
 		
 		$notatend = $OBConversion -> ReadFile($OBMol, $file);
@@ -118,18 +118,10 @@ class data_management extends base {
 			$OBConversion -> SetOutFormat('mol2');
 			$string_mol2 = $OBConversion -> WriteString($OBMol);
 			
-#			$OBConversion -> SetOutFormat('smi');
-#			$OBConversion -> AddOption("U");
-#			$OBConversion -> AddOption("n");
-#			$smiles = trim($OBConversion -> WriteString($OBMol));
-#			
-#			$OBConversion -> SetOutFormat('inchikey');
-#			$OBConversion -> SetOptions('T"/nochg/nostereo"', $OBConversion::OUTOPTIONS);
-#			$inchi = trim($OBConversion -> WriteString($OBMol));
+			$mols[] = array('name' => trim($OBMol -> GetTitle()), 'mol2' => pack('L', strlen($string_mol2)).gzcompress($string_mol2));
 			
-			$mols[] = array('name' => $OBMol -> GetTitle(), 'mol2' => pack('L', strlen($string_mol2)).gzcompress($string_mol2), 'smiles' => $smiles, 'inchi' => $inchi);
-			
-			#$OBMol = new OBMol;
+#			unset($OBMol);
+#			$OBMol = new OBMol;
 			$OBMol -> Clear();
 			$notatend = $OBConversion -> Read($OBMol);
 		}
@@ -147,22 +139,6 @@ class data_management extends base {
 		$this -> OBConversion -> SetOutFormat("mol2");
 		return $this -> OBConversion -> WriteString($mol);
 	}
-	
-#	private function unique_mols($mols) {
-#		$unique = array();
-#		foreach($mols as $mol) {
-#			$key = $this -> get_inchikey($mol, '/nostereo');
-#			$key = $mol -> GetTitle();
-#			$unique[$key][] = $mol;
-#			if(!array_key_exists($key, $unique)) {
-#				$unique[$key] = array($mol);
-#			}
-#			else {
-#				$unique[$key][] = $mol;
-#			}
-#		}		
-#		return !empty($unique) ? $unique : null;
-#	}
 	
 	private function get_docking_scores($file, $just_first = false) {
 		if($_POST['file_format'] == 'mol2') {
@@ -185,8 +161,8 @@ class data_management extends base {
 		elseif($_POST['file_format'] == 'sdf') {
 			$OBMol = new OBMol;
 			$OBConversion = new OBConversion;
-			$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, 1);#($batch-1)*$batch_size+1);
-			$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, 100);#$batch*$batch_size);
+#			$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, 1);#($batch-1)*$batch_size+1);
+#			$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, 100);#$batch*$batch_size);
 			$OBConversion -> SetInFormat('sdf');
 			$OBConversion -> SetOptions('P', $OBConversion::OUTOPTIONS);
 			$notatend = $OBConversion -> ReadFile($OBMol, $file);
@@ -720,37 +696,43 @@ class data_management extends base {
 			$mol_ids = array();
 								
 			foreach($this -> unique_mols as $mol_keys) { 
-#				if($_POST['file_format'] == 'sdf') {
-#					# GOLD uses | as a separator in names
-#					$name = explode('|', $this -> mols[$mol_keys[0]][0] -> GetTitle());					
-#					$mol_name = $name[0];
-#				}
-#				else {
-#					$mol_name = $this -> mols[$mol_keys[0]][0] -> GetTitle();
-#				}
 				$mol_name = $this -> mols[$mol_keys[0]]['name'];
-				
-				
 #				$smiles = $this -> mols[$mol_keys[0]]['smiles'];				
 #				$mol_inchi = $this -> mols[$mol_keys[0]]['inchi'];
 				$mol2 = $this -> mols[$mol_keys[0]]['mol2'];
-				
-				#$query = 'INSERT IGNORE INTO '.$this -> project.'docking_molecules (`name`, `smiles`, `inchikey`, `fp2`, `obmol`, `mol2`) VALUES ("'.$mol_name.'", "'.$smiles.'", "'.$mol_inchi.'", FINGERPRINT2(SMILES_TO_MOLECULE("'.$smiles.'")), MOLECULE_TO_SERIALIZEDOBMOL(SMILES_TO_MOLECULE("'.$smiles.'")), COMPRESS(\''.$this -> Database -> secure_mysql($this -> get_mol2($this -> mols[$mol_keys[0]][0])).'\'));';
-				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_molecules (`name`, `smiles`, `inchikey`, `fp2`, `obmol`, `mol2`) VALUES ("'.$mol_name.'", "'.$smiles.'", "'.$mol_inchi.'", FINGERPRINT2(SMILES_TO_MOLECULE("'.$smiles.'")), MOLECULE_TO_SERIALIZEDOBMOL(SMILES_TO_MOLECULE("'.$smiles.'")), "'.$this -> Database -> secure_mysql($mol2).'");';
+
+				$query = 'SELECT id FROM '.$this -> project.'docking_molecules WHERE name = "'.$mol_name.'" LIMIT 1;';
 				$this -> Database -> query($query);
-				# get new molecule's ID, store it for future reference
-				$mol_id = $this -> Database -> insert_id();
+				$row = $this -> Database -> fetch_assoc();
+				$mol_id = $row['id'];
+				
 				if(empty($mol_id)) {
-					$query = 'SELECT id FROM '.$this -> project.'docking_molecules WHERE name = "'.$mol_name.'" LIMIT 1;';
+					$OBMol = new OBMol;
+					$OBConversion = new OBConversion;
+					$OBConversion -> SetInFormat('mol2');
+					$OBConversion -> ReadString($OBMol, gzuncompress(substr($mol2, 4)));
+					
+					$OBConversion -> SetOutFormat('smi');
+					$OBConversion -> AddOption("U");
+					$OBConversion -> AddOption("n");
+					$smiles = trim($OBConversion -> WriteString($OBMol));
+		
+					$OBConversion -> SetOutFormat('inchikey');
+#					$OBConversion -> SetOptions('T"/nochg/nostereo"', $OBConversion::OUTOPTIONS);
+					$inchi = preg_split('/[\r\n\s]+/', trim($OBConversion -> WriteString($OBMol)))[0];
+					
+					$query = 'INSERT INTO '.$this -> project.'docking_molecules (`name`, `smiles`, `inchikey`, `fp2`, `obmol`, `mol2`) VALUES ("'.$mol_name.'", "'.$smiles.'", "'.$inchi.'", FINGERPRINT2(SMILES_TO_MOLECULE("'.$smiles.'")), MOLECULE_TO_SERIALIZEDOBMOL(SMILES_TO_MOLECULE("'.$smiles.'")), "'.$this -> Database -> secure_mysql($mol2).'");';
 					$this -> Database -> query($query);
-					$row = $this -> Database -> fetch_assoc();
-					$mol_id = $row['id'];
+					# get new molecule's ID, store it for future reference
+					$mol_id = $this -> Database -> insert_id();
+					
+					if(empty($mol_id)) {
+						echo '<li>PANIC!! - '.$mol_name.' - '.$mol_inchi.'</br>';
+						$panic[] = $mol_name;
+					}
+					unset($OBConversion);
+					unset($OBMol);
 				}
-#				else {				
-#					#get molecules properties
-#					$query = 'INSERT INTO '.$this -> project.'docking_molecules (`id`, `smiles`, `mol2`) VALUES ("'.$mol_id.'", "'.$smiles.'", COMPRESS(\''.$this -> Database -> secure_mysql($this -> get_mol2($this -> mols[$mol_keys[0]][0])).'\'));';
-#					$this -> Database -> query($query);
-#				}
 				
 				if(!empty($mol_id)) {
 					$mol_ids[] = $mol_id;
@@ -764,7 +746,7 @@ class data_management extends base {
 						}
 						
 						$mol2 = $this -> mols[$key]['mol2'];
-						#$query = 'INSERT INTO '.$this -> project.'docking_conformations (`mol_id`, `target_id`, `ligand_subset`, `name`, `mol2`, `import_id`) VALUES ("'.$mol_id.'", "'.$target_id.'", "'.$ligand_subset.'", \''.str_replace($sign, $escape, $conf_name).'\', COMPRESS(\''. $this -> Database -> secure_mysql($this -> get_mol2($this -> mols[$key][0])).'\'), '.(!empty($import_id) ? $import_id : 'NULL').');';
+	
 						$query = 'INSERT INTO '.$this -> project.'docking_conformations (`mol_id`, `target_id`, `ligand_subset`, `name`, `mol2`, `import_id`) VALUES ("'.$mol_id.'", "'.$target_id.'", "'.$ligand_subset.'", \''.str_replace($sign, $escape, $conf_name).'\', \''. $this -> Database -> secure_mysql($mol2).'\', '.(!empty($import_id) ? $import_id : 'NULL').');';
 						$this -> Database -> query($query);
 						$conf_id = $this -> Database -> insert_id();
@@ -797,7 +779,7 @@ class data_management extends base {
 				$this -> Database -> query($query);
 			}
 			
-			echo 'Uploded '.count($mol_ids).' molecules.';
+			echo 'Uploded '.count($mol_ids).' molecules. '.count($this -> unique_mols).' - '.count($panic).'</br>';
 			
 			echo memory_get_usage().'|'.memory_get_peak_usage().'</br>';
 			echo memory_get_usage(true).'|'.memory_get_peak_usage(true).'</br>';
