@@ -99,7 +99,7 @@ class data_management extends base {
 		}
 	}
 	
-	private function parse_file($file, $format = 'mol2', $batch = 1, $batch_size = 100) {
+	private function parse_file($file, $format = 'mol2', $batch = 1, $batch_size = 1000) {
 #		if($format == 'mol2') {
 #			$format = 'copy';
 #		}
@@ -108,8 +108,8 @@ class data_management extends base {
 
 		$OBMol = new OBMol;
 		$OBConversion = new OBConversion;
-#		$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, 1);#($batch-1)*$batch_size+1);
-#		$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, 100);#$batch*$batch_size);
+		$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, ($batch-1)*$batch_size+1);
+		$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, $batch*$batch_size);
 		$OBConversion -> SetInFormat($format);
 		
 		$notatend = $OBConversion -> ReadFile($OBMol, $file);
@@ -140,7 +140,8 @@ class data_management extends base {
 		return $this -> OBConversion -> WriteString($mol);
 	}
 	
-	private function get_docking_scores($file, $just_first = false) {
+	private function get_docking_scores($file, $just_first = false, $batch = 1, $batch_size = 1000) {
+	 {
 		if($_POST['file_format'] == 'mol2') {
 			$pfile = gzopen($file, 'rb');
 			$output = array();
@@ -161,8 +162,10 @@ class data_management extends base {
 		elseif($_POST['file_format'] == 'sdf') {
 			$OBMol = new OBMol;
 			$OBConversion = new OBConversion;
-#			$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, 1);#($batch-1)*$batch_size+1);
-#			$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, 100);#$batch*$batch_size);
+			if(!$just_first) {
+				$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, ($batch-1)*$batch_size+1);
+				$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, $batch*$batch_size);
+			}
 			$OBConversion -> SetInFormat('sdf');
 			$OBConversion -> SetOptions('P', $OBConversion::OUTOPTIONS);
 			$notatend = $OBConversion -> ReadFile($OBMol, $file);
@@ -717,7 +720,7 @@ class data_management extends base {
 					$inchi = preg_split('/[\r\n\s]+/', trim($OBConversion -> WriteString($OBMol)))[0];
 					
 					$OBConversion -> SetOutFormat('smi');
-					$OBConversion -> AddOption("U");
+					$OBConversion -> AddOption("c");
 					$OBConversion -> AddOption("n");
 					$smiles = trim($OBConversion -> WriteString($OBMol));
 					
