@@ -100,6 +100,7 @@ class data_management extends base {
 	}
 	
 	private function parse_file($file, $format = 'mol2', $batch = 1, $batch_size = 1000) {
+		$mols = array();
 #		if($format == 'mol2') {
 #			$format = 'copy';
 #		}
@@ -141,7 +142,7 @@ class data_management extends base {
 	}
 	
 	private function get_docking_scores($file, $just_first = false, $batch = 1, $batch_size = 1000) {
-	 {
+		$output = array();
 		if($_POST['file_format'] == 'mol2') {
 			$pfile = gzopen($file, 'rb');
 			$output = array();
@@ -197,6 +198,10 @@ class data_management extends base {
 	}
 	
 	public function import_form() {
+		$this -> batch = !empty($_POST['batch']) ? (int) $_POST['batch'] : 1;
+		$this -> batch_size = 10000;
+		
+		
 		# ligand file
 		if($_FILES["file"]["size"] > 0) {
 			#move file
@@ -217,13 +222,15 @@ class data_management extends base {
 			$this -> target_file = $_POST['target_file_name'];
 		}
 		
+		$this -> unique_mols = array();
+		
 		if(is_file($this -> upload_dir.$this -> upload_file) && filesize($this -> upload_dir.$this -> upload_file) > 0) {
 			# get first line to check if mapping is assigned
 			$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, true);
 			if(count($dock[0]) - count($_POST['mapping']) < 1) {
 				# get all info
-				$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file);
-				foreach($this -> parse_file($this -> upload_dir.$this -> upload_file, $format = $_POST['file_format']) as $key => $mol) {
+				#$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, false, $this -> batch);
+				foreach($this -> parse_file($this -> upload_dir.$this -> upload_file, $format = $_POST['file_format'], $this -> batch) as $key => $mol) {
 					$this -> mols[] = array_merge($mol, array('scores' => $dock[$key])); 
 					#$unique_key = $this -> get_inchikey($mol, '/nostereo');
 					# get oryginal molecules name
@@ -442,11 +449,11 @@ class data_management extends base {
 		$this -> get_project_db();
 		$project = (int) $this -> Database -> secure_mysql($_GET['project'] ? $_GET['project'] : $_POST['project']);
 		
-		
+
 		$dock = !empty($this -> upload_file) ? $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, true) : array();
 		
 		
-		if(empty($this -> mols) || count($dock[0]) - count($_POST['mapping']) > 0) {
+		if(empty($this -> mols) && empty($_POST['batch']) || count($dock[0]) - count($_POST['mapping']) > 0) {
 			echo '<form method="POST" enctype="multipart/form-data" action="'.$this -> get_link().'">';
 			
 			#show targets
@@ -686,13 +693,16 @@ class data_management extends base {
 			$sign = 	array("'");
 			$escape = 	array("\'"); 
 			
-			# insert import file into database, for easier managment, and posible re-processing
-			$query = 'INSERT INTO '.$this -> project.'docking_conformations_import (`subset`, `time`, `filename`, `file`) VALUES ('.$ligand_subset.', '.time().', "'.$this -> upload_file.'", COMPRESS("'.$this -> Database -> secure_mysql(file_get_contents($this -> upload_dir.$this -> upload_file)).'"))';
-			$this -> Database -> query($query);
-			# get new or current ligand_subset's id
-			$import_id = $this -> Database -> insert_id();
-			#free some memory
-			unset($query);
+			$import_id = (int) $_POST['import_id'];
+			if(empty($import_id)) {
+				# insert import file into database, for easier managment, and posible re-processing
+				$query = 'INSERT INTO '.$this -> project.'docking_conformations_import (`subset`, `time`, `filename`, `file`) VALUES ('.$ligand_subset.', '.time().', "'.$this -> upload_file.'", COMPRESS("'.$this -> Database -> secure_mysql(file_get_contents($this -> upload_dir.$this -> upload_file)).'"))';
+				$this -> Database -> query($query);
+				# get new or current ligand_subset's id
+				$import_id = $this -> Database -> insert_id();
+				#free some memory
+				unset($query);
+			}
 			 
 			$mapping = !empty($_POST['mapping']) ? array_filter($_POST['mapping']) : array();
 			
@@ -764,7 +774,7 @@ class data_management extends base {
 							$this -> Database -> query($query);
 						}
 					}
-					echo '<li>'.$mol_name.' - '.count($mol_keys).' conformations</li>';
+					#echo '<li>'.$mol_name.' - '.count($mol_keys).' conformations</li>';
 				}
 			}
 			#upload ligand_subset_members
@@ -782,18 +792,55 @@ class data_management extends base {
 				$this -> Database -> query($query);
 			}
 			
-			echo 'Uploded '.count($mol_ids).' molecules. '.count($this -> unique_mols).' - '.count($panic).'</br>';
 			
-			echo memory_get_usage().'|'.memory_get_peak_usage().'</br>';
-			echo memory_get_usage(true).'|'.memory_get_peak_usage(true).'</br>';
 			
-			# remove files
-			if(is_file($this -> upload_dir.$this -> target_file)) {
-				unlink($this -> upload_dir.$this -> target_file);
+			if(count($this -> mols) < $this -> batch_size) {
+				echo '<div class="alert">Successfully imported '.(($this -> batch-1)*$this -> batch_size+count($this -> mols)).'</div>';
+				# remove files
+				if(is_file($this -> upload_dir.$this -> target_file)) {
+					unlink($this -> upload_dir.$this -> target_file);
+				}
+				if(is_file($this -> upload_dir.$this -> upload_file)) {
+					unlink($this -> upload_dir.$this -> upload_file);
+				}
 			}
-			if(is_file($this -> upload_dir.$this -> upload_file)) {
-				unlink($this -> upload_dir.$this -> upload_file);
+			else {
+				echo '<form id="import_form" method="POST" enctype="multipart/form-data" action="'.$this -> get_link().'">';
+				#inport_id
+				#batch
+				echo 'Uploded '.count($mol_ids).' molecules. '.count($this -> unique_mols).' - '.count($panic).'</br>';
+				
+				echo '<div class="alert">Completed '.($this -> batch*$this -> batch_size).'</div>';
+				echo '<input type="hidden" name="batch" value="'.($this -> batch+1).'">';
+				echo '<input type="hidden" name="timeout" value="1000">'; #timeout for autoreload [in ms]
+				echo '<input type="hidden" name="import_id" value="'.$improt_id.'">';
+				echo '<input type="hidden" name="file_name" value="'.$this -> upload_file.'">';
+				echo '<input type="hidden" name="file_format" value="'.$_POST['file_format'].'">';
+				echo '<input type="hidden" name="target_id" value="'.$target_id.'">';
+				echo '<input type="hidden" name="ligand_subset" value="'.$ligand_subset.'">';
+				#mapping
+				foreach($_POST['mapping'] as $key => $map) {
+					echo '<input type="hidden" name="mapping['.$key.']" value="'.$map.'">';
+				}
+				if(!IS_AJAX) {
+					echo '<button class="btn btn-warning">Import next batch</button>';
+					?>
+					<script>
+					$(function() {
+						if($('#import_form> input[name="timeout"]').val() > 0) {
+							setTimeout(function() {
+								$('#import_form').submit()
+							}, $('#import_form> input[name="timeout"]').val());
+						}
+					});
+					</script>
+					<?php
+				}
+				echo '</form>';
 			}
+			
+#			echo memory_get_usage().'|'.memory_get_peak_usage().'</br>';
+#			echo memory_get_usage(true).'|'.memory_get_peak_usage(true).'</br>';
 		}
 	}
 	
