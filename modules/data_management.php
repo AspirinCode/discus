@@ -230,7 +230,7 @@ class data_management extends base {
 			if(count($dock[0]) - count($_POST['mapping']) < 1) {
 				# get all info
 				#$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, false, $this -> batch);
-				foreach($this -> parse_file($this -> upload_dir.$this -> upload_file, $format = $_POST['file_format'], $this -> batch) as $key => $mol) {
+				foreach($this -> parse_file($this -> upload_dir.$this -> upload_file, $format = $_POST['file_format'], $this -> batch, $this -> batch_size) as $key => $mol) {
 					$this -> mols[] = array_merge($mol, array('scores' => $dock[$key])); 
 					#$unique_key = $this -> get_inchikey($mol, '/nostereo');
 					# get oryginal molecules name
@@ -450,7 +450,7 @@ class data_management extends base {
 		$project = (int) $this -> Database -> secure_mysql($_GET['project'] ? $_GET['project'] : $_POST['project']);
 		
 
-		$dock = !empty($this -> upload_file) ? $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, true) : array();
+		$dock = !empty($this -> upload_file) ? $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, true, $this -> batch, $this -> batch_size) : array();
 		
 		
 		if(empty($this -> mols) && empty($_POST['batch']) || count($dock[0]) - count($_POST['mapping']) > 0) {
