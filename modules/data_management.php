@@ -199,7 +199,7 @@ class data_management extends base {
 	
 	public function import_form() {
 		$this -> batch = !empty($_POST['batch']) ? (int) $_POST['batch'] : 1;
-		$this -> batch_size = 10000;
+		$this -> batch_size = 100000;
 		
 		
 		# ligand file
@@ -808,7 +808,7 @@ class data_management extends base {
 				echo '<form id="import_form" method="POST" enctype="multipart/form-data" action="'.$this -> get_link().'">';
 				#inport_id
 				#batch
-				echo 'Uploded '.count($mol_ids).' molecules. '.count($this -> unique_mols).' - '.count($panic).'</br>';
+				#echo 'Uploded '.count($mol_ids).' molecules. '.count($this -> unique_mols).' - '.count($panic).'</br>';
 				
 				echo '<div class="alert">Completed '.($this -> batch*$this -> batch_size).'</div>';
 				echo '<input type="hidden" name="batch" value="'.($this -> batch+1).'">';
