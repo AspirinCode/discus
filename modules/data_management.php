@@ -696,7 +696,7 @@ class data_management extends base {
 			$import_id = (int) $_POST['import_id'];
 			if(empty($import_id)) {
 				# insert import file into database, for easier managment, and posible re-processing
-				$query = 'INSERT INTO '.$this -> project.'docking_conformations_import (`subset`, `time`, `filename`, `file`) VALUES ('.$ligand_subset.', '.time().', "'.$this -> upload_file.'", LOAD_FILE("'.realpath($this -> upload_dir.$this -> upload_file).'"))';
+				$query = 'INSERT INTO '.$this -> project.'docking_conformations_import (`subset`, `time`, `filename`, `file`) VALUES ('.$ligand_subset.', '.time().', "'.$this -> upload_file.'", COMPRESS(LOAD_FILE("'.realpath($this -> upload_dir.$this -> upload_file).'")))';
 				$this -> Database -> query($query);
 				# get new or current ligand_subset's id
 				$import_id = $this -> Database -> insert_id();
