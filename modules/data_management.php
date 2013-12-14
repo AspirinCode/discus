@@ -199,7 +199,7 @@ class data_management extends base {
 	
 	public function import_form() {
 		$this -> batch = !empty($_POST['batch']) ? (int) $_POST['batch'] : 1;
-		$this -> batch_size = 100000;
+		$this -> batch_size = 10000;
 		
 		
 		# ligand file
@@ -696,7 +696,7 @@ class data_management extends base {
 			$import_id = (int) $_POST['import_id'];
 			if(empty($import_id)) {
 				# insert import file into database, for easier managment, and posible re-processing
-				$query = 'INSERT INTO '.$this -> project.'docking_conformations_import (`subset`, `time`, `filename`, `file`) VALUES ('.$ligand_subset.', '.time().', "'.$this -> upload_file.'", COMPRESS("'.$this -> Database -> secure_mysql(file_get_contents($this -> upload_dir.$this -> upload_file)).'"))';
+				$query = 'INSERT INTO '.$this -> project.'docking_conformations_import (`subset`, `time`, `filename`, `file`) VALUES ('.$ligand_subset.', '.time().', "'.$this -> upload_file.'", LOAD_FILE("'.realpath($this -> upload_dir.$this -> upload_file).'"))';
 				$this -> Database -> query($query);
 				# get new or current ligand_subset's id
 				$import_id = $this -> Database -> insert_id();
@@ -813,7 +813,7 @@ class data_management extends base {
 				echo '<div class="alert">Completed '.($this -> batch*$this -> batch_size).'</div>';
 				echo '<input type="hidden" name="batch" value="'.($this -> batch+1).'">';
 				echo '<input type="hidden" name="timeout" value="1000">'; #timeout for autoreload [in ms]
-				echo '<input type="hidden" name="import_id" value="'.$improt_id.'">';
+				echo '<input type="hidden" name="import_id" value="'.$import_id.'">';
 				echo '<input type="hidden" name="file_name" value="'.$this -> upload_file.'">';
 				echo '<input type="hidden" name="file_format" value="'.$_POST['file_format'].'">';
 				echo '<input type="hidden" name="target_id" value="'.$target_id.'">';
