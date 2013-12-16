@@ -4153,21 +4153,25 @@ class molecules extends base {
 	
 	public function view_form_overview() {
 		# show mixed summary table
-		$summary = array();
-		$counts = array();
-		$query = 'SELECT target.name AS target_name, target.id AS tid, subset.name AS subset_name, subset.id AS sid, COUNT(DISTINCT subset.id) AS rowspan, COUNT(DISTINCT conf.mol_id) AS mol_num, COUNT(conf.id) AS conf_num FROM '.$this -> project.'docking_conformations AS conf 
-		LEFT JOIN '.$this -> project.'docking_targets AS target ON conf.target_id = target.id 
-		LEFT JOIN '.$this -> project.'docking_ligand_subset AS subset ON conf.ligand_subset = subset.id 
-		GROUP BY target_id, ligand_subset;';
+		$targets = array();
+		$query = 'SELECT name , id FROM '.$this -> project.'docking_targets;';
 		$this -> Database -> query($query);
 		#echo $query;
 		$n=1;
 		while($row = $this -> Database -> fetch_assoc()) {
-			$summary[$row['tid']][] = $row;
-			$counts[$row['tid']]['subset_num']++;
+			$targets[$row['id']] = $row;
 		}
 		
-		if(!empty($summary)) {
+		$subsets = array();
+		$query = 'SELECT name , id FROM '.$this -> project.'docking_ligand_subset;';
+		$this -> Database -> query($query);
+		#echo $query;
+		$n=1;
+		while($row = $this -> Database -> fetch_assoc()) {
+			$subsets[$row['id']] = $row;
+		}
+		
+		if(!empty($targets) && !empty($subsets)) {
 			# show target summary table
 			echo '<table class="table table-striped table-hover">';
 			echo '<tr>';
@@ -4178,16 +4182,17 @@ class molecules extends base {
 			echo '<th># of conformations</th>';
 			echo '<th>Computation</th>';
 			echo '</tr>';
-			$query = 'SELECT target_id AS tid, COUNT(DISTINCT conf.mol_id) AS mol_num, COUNT(conf.id) AS conf_num  FROM '.$this -> project.'docking_conformations AS conf GROUP BY target_id;';
-			$this -> Database -> query($query);
-			#echo $query;
 			$n=1;
-		
-			while($row = $this -> Database -> fetch_assoc()) {
+			foreach($targets as $target) {
+				$query = 'SELECT COUNT(id) AS conf_num, COUNT(DISTINCT mol_id) AS mol_num  FROM '.$this -> project.'docking_conformations WHERE `target_id` = '.$target['id'].';';
+				$this -> Database -> query($query);
+				#echo $query;
+				$n=1;
+				$row = $this -> Database -> fetch_assoc();
 				echo '<tr>';
 				echo '<td>'.$n++.'</td>'; #rowspan="'.($counts[$row['tid']]['subset_num']+1).'"
-				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'var_target[]' => $row['tid']), array(), array('project')).'">'.$summary[$row['tid']][0]['target_name'].'</a></td>';
-				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'var_target[]' => $row['tid']), array(), array('project')).'">All subsets</a> <button class="btn btn-mini btn-inverse overview-subsets"><i class="icon-list icon-white"></i> more</button></td>';
+				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'var_target[]' => $target['id']), array(), array('project')).'">'.$target['name'].'</a></td>';
+				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'var_target[]' => $target['id']), array(), array('project')).'">All subsets</a> <button class="btn btn-mini btn-inverse overview-subsets"><i class="icon-list icon-white"></i> more</button></td>';
 				echo '<td><span class="badge badge-info">'.number_format($row['mol_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></td>';
 				echo '<td><span class="badge">'.number_format($row['conf_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></td>';
 			
@@ -4197,7 +4202,7 @@ class molecules extends base {
 				echo '<ul class="dropdown-menu">';
 				$plugins = $this -> list_plugins();
 				foreach($plugins as $plugin) {
-					echo '<li><a data-toggle="modal" data-target="#modal"  href="'.$this -> get_link(array('module' => 'plugins', 'mode' => 'compute', 'plugin_name' => $plugin[0], 'target_id' => $row['tid'], 'ajax' => 1), array(), array('project')).'">'.$plugin[1].'</a></li>';
+					echo '<li><a data-toggle="modal" data-target="#modal"  href="'.$this -> get_link(array('module' => 'plugins', 'mode' => 'compute', 'plugin_name' => $plugin[0], 'target_id' => $target['id'], 'ajax' => 1), array(), array('project')).'">'.$plugin[1].'</a></li>';
 				}
 				echo '</ul>';
 				echo '</div>';
@@ -4205,11 +4210,12 @@ class molecules extends base {
 
 				echo '</tr>';
 			
-			
+				$query = 'SELECT ligand_subset, COUNT(id) AS conf_num, COUNT(DISTINCT mol_id) AS mol_num  FROM '.$this -> project.'docking_conformations WHERE `target_id` = '.$target['id'].' GROUP BY ligand_subset;';
+				$this -> Database -> query($query);
 				#show per subset rows
-				foreach($summary[$row['tid']] as $key => $row) {
+				while($row = $this -> Database -> fetch_assoc()) {
 					echo '<tr class="hide">';
-					echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'var_target[]' => $row['tid'], 'subset' => 'ligand-'.$row['sid']), array(), array('project')).'">'.$row['subset_name'].'</a></th>';
+					echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'var_target[]' => $target['id'], 'subset' => 'ligand-'.$row['ligand_subset']), array(), array('project')).'">'.$subsets[$row['ligand_subset']]['name'].'</a></th>';
 					echo '<td><span class="badge badge-success">'.number_format($row['mol_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
 					echo '<td><span class="badge">'.number_format($row['conf_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
 				
@@ -4219,7 +4225,7 @@ class molecules extends base {
 					echo '<ul class="dropdown-menu">';
 					$plugins = $this -> list_plugins();
 					foreach($plugins as $plugin) {
-						echo '<li><a data-toggle="modal" data-target="#modal"  href="'.$this -> get_link(array('module' => 'plugins', 'mode' => 'compute', 'plugin_name' => $plugin[0], 'target_id' => $row['tid'], 'ligand_subset' => $row['sid'], 'ajax' => 1), array(), array('project')).'">'.$plugin[1].'</a></li>';
+						echo '<li><a data-toggle="modal" data-target="#modal"  href="'.$this -> get_link(array('module' => 'plugins', 'mode' => 'compute', 'plugin_name' => $plugin[0], 'target_id' => $target['id'], 'ligand_subset' => $row['ligand_subset'], 'ajax' => 1), array(), array('project')).'">'.$plugin[1].'</a></li>';
 					}
 					echo '</ul>';
 					echo '</div>';
@@ -4285,14 +4291,14 @@ class molecules extends base {
 			echo '<th># of ligands</th>';
 			echo '<th># of conformations</th>';
 			echo '</tr>';
-			$query = 'SELECT subset.id AS sid, subset.name, COUNT(DISTINCT conf.mol_id) AS mol_num, COUNT(conf.id) AS conf_num  FROM '.$this -> project.'docking_conformations AS conf JOIN '.$this -> project.'docking_ligand_subset AS subset ON conf.ligand_subset = subset.id GROUP BY ligand_subset;';
+			$query = 'SELECT ligand_subset, COUNT(DISTINCT conf.mol_id) AS mol_num, COUNT(conf.id) AS conf_num  FROM '.$this -> project.'docking_conformations AS conf GROUP BY ligand_subset;';
 			$this -> Database -> query($query);
 			#echo $query;
 			$n=1;
 			while($row = $this -> Database -> fetch_assoc()) {
 				echo '<tr>';
 				echo '<td>'.$n++.'</th>';
-				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'subset' => 'ligand-'.$row['sid']), array(), array('project')).'">'.$row['name'].'</a></th>';
+				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'subset' => 'ligand-'.$row['ligand_subset']), array(), array('project')).'">'.$subsets[$row['ligand_subset']]['name'].'</a></th>';
 				echo '<td><span class="badge badge-success">'.number_format($row['mol_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
 				echo '<td><span class="badge">'.number_format($row['conf_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
 				echo '</tr>';
