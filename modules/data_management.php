@@ -703,7 +703,7 @@ class data_management extends base {
 			$escape = 	array("\'"); 
 			
 			$import_id = (int) $_POST['import_id'];
-			if(empty($import_id)) {
+			if(empty($import_id) && filesize($this -> upload_dir.$this -> upload_file) < 4294967295 ) {
 				# insert import file into database, for easier managment, and posible re-processing
 				$query = 'INSERT INTO '.$this -> project.'docking_conformations_import (`subset`, `time`, `filename`, `file`) VALUES ('.$ligand_subset.', '.time().', "'.$this -> upload_file.'", COMPRESS(LOAD_FILE("'.realpath($this -> upload_dir.$this -> upload_file).'")))';
 				$this -> Database -> query($query);
