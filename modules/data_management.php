@@ -119,7 +119,24 @@ class data_management extends base {
 			$OBConversion -> SetOutFormat('mol2');
 			$string_mol2 = $OBConversion -> WriteString($OBMol);
 			
-			$mols[] = array('name' => trim($OBMol -> GetTitle()), 'mol2' => pack('L', strlen($string_mol2)).gzcompress($string_mol2));
+			$size = $OBMol -> DataSize();
+			if($size > 0) {
+				$s = array();
+				$data = $OBMol -> GetData();
+				
+				for($i = 0; $i<$size;$i++) {
+					$v = $data -> get($i);
+					# get only valid data
+					if(($v -> GetDataType() == openbabel::PairData || $v -> GetDataType() == openbabel::CommentData)
+					&& $v -> GetAttribute() != 'MOL Chiral Flag'
+					&& $v -> GetAttribute() != 'OpenBabel Symmetry Classes') {
+						$s[$v -> GetAttribute()] = $v -> GetValue();
+					}
+				}
+			}
+			
+			$mols[] = array('name' => trim($OBMol -> GetTitle()), 'mol2' => pack('L', strlen($string_mol2)).gzcompress($string_mol2), 'scores' => $s);
+			
 			
 #			unset($OBMol);
 #			$OBMol = new OBMol;
@@ -160,39 +177,28 @@ class data_management extends base {
 				}
 			}
 		}
-		elseif($_POST['file_format'] == 'sdf') {
+		elseif($_POST['file_format'] == 'sdf' && $just_first) {
 			$OBMol = new OBMol;
 			$OBConversion = new OBConversion;
-			if(!$just_first) {
-				$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, ($batch-1)*$batch_size+1);
-				$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, $batch*$batch_size);
-			}
+			$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, 1);
+			$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, 1);
 			$OBConversion -> SetInFormat('sdf');
 			$OBConversion -> SetOptions('P', $OBConversion::OUTOPTIONS);
-			$notatend = $OBConversion -> ReadFile($OBMol, $file);
-			while($notatend) {
-				#while(
-				$size = $OBMol -> DataSize();
-				$data = $OBMol -> GetData();
-				
-				for($i = 0; $i<$size;$i++) {
-					$v = $data -> get($i);
-					# get only valid data
-					if(($v -> GetDataType() == openbabel::PairData || $v -> GetDataType() == openbabel::CommentData)
-					&& $v -> GetAttribute() != 'MOL Chiral Flag'
-					&& $v -> GetAttribute() != 'OpenBabel Symmetry Classes') {
-						$o[$v -> GetAttribute()] = $v -> GetValue();
-					}
+			$OBConversion -> ReadFile($OBMol, $file);
+			
+			$size = $OBMol -> DataSize();
+			$data = $OBMol -> GetData();
+			
+			for($i = 0; $i<$size;$i++) {
+				$v = $data -> get($i);
+				# get only valid data
+				if(($v -> GetDataType() == openbabel::PairData || $v -> GetDataType() == openbabel::CommentData)
+				&& $v -> GetAttribute() != 'MOL Chiral Flag'
+				&& $v -> GetAttribute() != 'OpenBabel Symmetry Classes') {
+					$o[$v -> GetAttribute()] = $v -> GetValue();
 				}
-				$output[] = $o;
-
-				if($just_first) {
-					return $output;
-				}
-				#$OBMol = new OBMol;
-				$OBMol -> Clear();
-				$notatend = $OBConversion -> Read($OBMol);
 			}
+			$output[] = $o;
 		}
 		return $output;
 	}
@@ -229,9 +235,12 @@ class data_management extends base {
 			$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, true);
 			if(count($dock[0]) - count($_POST['mapping']) < 1) {
 				# get all info
-				#$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, false, $this -> batch);
+				$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, false, $this -> batch);
 				foreach($this -> parse_file($this -> upload_dir.$this -> upload_file, $format = $_POST['file_format'], $this -> batch, $this -> batch_size) as $key => $mol) {
-					$this -> mols[] = array_merge($mol, array('scores' => $dock[$key])); 
+					if(!empty($dock[$key])) {
+						$mol['scores'] = array_merge($mol['scores'], $dock[$key]);
+					}
+					$this -> mols[] = $mol; 
 					#$unique_key = $this -> get_inchikey($mol, '/nostereo');
 					# get oryginal molecules name
 					if($_POST['file_format'] == 'sdf') {
