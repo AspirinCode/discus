@@ -4178,7 +4178,7 @@ class molecules extends base {
 			echo '<th># of conformations</th>';
 			echo '<th>Computation</th>';
 			echo '</tr>';
-			$query = 'SELECT target.id AS tid, target.name, COUNT(DISTINCT conf.mol_id) AS mol_num, COUNT(conf.id) AS conf_num  FROM '.$this -> project.'docking_conformations AS conf JOIN '.$this -> project.'docking_targets AS target ON conf.target_id = target.id GROUP BY target_id;';
+			$query = 'SELECT target_id AS tid, COUNT(DISTINCT conf.mol_id) AS mol_num, COUNT(conf.id) AS conf_num  FROM '.$this -> project.'docking_conformations AS conf GROUP BY target_id;';
 			$this -> Database -> query($query);
 			#echo $query;
 			$n=1;
@@ -4186,7 +4186,7 @@ class molecules extends base {
 			while($row = $this -> Database -> fetch_assoc()) {
 				echo '<tr>';
 				echo '<td>'.$n++.'</td>'; #rowspan="'.($counts[$row['tid']]['subset_num']+1).'"
-				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'var_target[]' => $row['tid']), array(), array('project')).'">'.$row['name'].'</a></td>';
+				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'var_target[]' => $row['tid']), array(), array('project')).'">'.$summary[$row['tid']][0]['target_name'].'</a></td>';
 				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'var_target[]' => $row['tid']), array(), array('project')).'">All subsets</a> <button class="btn btn-mini btn-inverse overview-subsets"><i class="icon-list icon-white"></i> more</button></td>';
 				echo '<td><span class="badge badge-info">'.number_format($row['mol_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></td>';
 				echo '<td><span class="badge">'.number_format($row['conf_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></td>';
@@ -4350,6 +4350,7 @@ class molecules extends base {
 			echo '<li class="dropdown pull-right"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Data managment <b class="caret"></b></a>';
 			echo '<ul class="dropdown-menu">';
 			echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'import_form', 'ajax' => 1), array(), array('project', 'module')).'">Import docked conformations</a></li>';
+			echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'subset_edit', 'ajax' => 1), array(), array('project', 'module')).'">Manage Subsets</a></li>';
 		       	echo '</ul>';
 			echo '</li>';
 		
