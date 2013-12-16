@@ -205,7 +205,7 @@ class data_management extends base {
 	
 	public function import_form() {
 		$this -> batch = !empty($_POST['batch']) ? (int) $_POST['batch'] : 1;
-		$this -> batch_size = 10000;
+		$this -> batch_size = 100000;
 		
 		
 		# ligand file
