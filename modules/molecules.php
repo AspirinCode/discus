@@ -2848,11 +2848,11 @@ class molecules extends base {
 		echo '</br>';
 		
 		# choose cumulative mode or best conformation
-#		echo 'Rank Mode: ';
-#		echo '<select name="cumulative">';
-#		echo '<option value="1"'.($_GET['cumulative'] != 0 ? ' selected' : '').'>Cumulative</option>';
-#		echo '<option value="0"'.($_GET['cumulative'] == 0 ? ' selected' : '').'>Best conformer</option>';
-#		echo '</select>';
+		echo 'Rank Mode: ';
+		echo '<select name="cumulative">';
+		echo '<option value="1"'.($_GET['cumulative'] != 0 ? ' selected' : '').'>Cumulative</option>';
+		echo '<option value="0"'.($_GET['cumulative'] == 0 ? ' selected' : '').'>Best conformer</option>';
+		echo '</select>';
 		
 		echo '</br>';
 		echo '</br>';
