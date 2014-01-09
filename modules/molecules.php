@@ -2141,7 +2141,7 @@ class molecules extends base {
 		
 
 		#get group size
-		$group_size = (int) $this -> Database -> secure_mysql($_GET['group_size'] ? $_GET['group_size'] : 1);
+		$group_size = (float) $this -> Database -> secure_mysql($_GET['group_size'] ? $_GET['group_size'] : 1);
 		
 		$series = count($_GET['series_subset']) > 1 ? count($_GET['series_subset']) : 1;
 		
@@ -2149,7 +2149,7 @@ class molecules extends base {
 		$score = $this -> Database -> secure_mysql($_GET['score'] ? $_GET['score'] : $_POST['score']);
 		
 		if(!empty($score)) {
-			if($group_size > 1) {
+			if($group_size != 1) {
 				$group_field = 'floor('.$score.'/'.$group_size.')*'.$group_size;
 			}
 			else {
@@ -2546,7 +2546,7 @@ class molecules extends base {
 		# show group size
 		echo '<div class="form-horizontal">';
 		echo 'Data bin size: ';
-		echo '<input type="text"class="input-mini" name="group_size" value="'.((int) $_GET['group_size'] > 1 ? (int) $_GET['group_size'] : 1).'"/>';
+		echo '<input type="text"class="input-mini" name="group_size" value="'.(!empty($_GET['group_size']) ? (float) $_GET['group_size'] : 1).'"/>';
 		echo '</div>';
 		
 		echo '<label class="checkbox"><input type="checkbox" name="normalize" value=1 '.($_GET['normalize'] ? 'checked' : '').'/>Normalize data (return % population in groups)</label>';
