@@ -419,6 +419,9 @@ class base {
 			$toolbar .= '<ul class="dropdown-menu">';
 		
 			$toolbar .= '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'user_management', 'mode' => 'user_add', 'ajax' => 1), array(), array('project')).'">Add user</a></li>';
+			$toolbar .= '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'user_management', 'mode' => 'user_edit', 'ajax' => 1), array(), array('project')).'">Manage users</a></li>';
+			$toolbar .= '<li class="divider"></li>';
+			$toolbar .= '<li><a data-toggle="modal" data-target="#modal" href="./update.php">Update Discus from GitHub</a></li>';
 #			# project updates
 #			$query = 'SELECT id FROM '.$CONFIG['db_name'].'.docking_project_dbupdater WHERE `time` > (SELECT db_timestamp FROM '.$CONFIG['db_name'].'.docking_project WHERE id = '.$this -> project_id.' LIMIT 1) ORDER BY time ASC';
 #			$this -> Database -> query($query);
