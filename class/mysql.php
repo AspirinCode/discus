@@ -105,7 +105,7 @@ class Database {
 		$Timer -> start_mysql();
 		$this -> dbquery = mysqli_query($this -> dbconnection, $query);
 		if(!$this -> dbquery) {
-			$this -> _error(query);
+			$this -> _error($query);
 			return false;
 		}
 		if($this -> dbquery) {
@@ -214,7 +214,7 @@ class Database {
 
 	private function _error($type) {
 		if($this -> dbconnection) {
-			echo 'MySQL said: <i>'.mysqli_error($this -> dbconnection).'</i><br>';
+			echo $type.'<br>MySQL said: <i>'.mysqli_error($this -> dbconnection).'</i><br>';
 		}
 	}
 	
