@@ -3800,7 +3800,7 @@ class molecules extends base {
 		echo '</select>';
 		echo '</br>';
 		
-		if(!is_array($_GET['target_id']) && !empty($target_id)) {
+		if(!is_array($_GET['target_id']) && $_GET['mode'] == 'interactions' && !empty($target_id)) {
 			
 			$sql_join[] = 'LEFT JOIN '.$this -> project.'docking_conformations as conf ON interactions.id = conf.id';
 			# get subset
@@ -4376,11 +4376,10 @@ class molecules extends base {
 					}
 				}
 				
-				if(!empty($user_subsets)) {
-					if(in_array($_GET['mode'], array('search', 'cheminformatics'))) {
-						echo '<li class="dropdown-submenu"><a href="#">Query</a>';
-						echo '<ul class="dropdown-menu">';
-					
+				if(in_array($_GET['mode'], array('search', 'cheminformatics'))) {
+					echo '<li class="dropdown-submenu"><a href="#">Query</a>';
+					echo '<ul class="dropdown-menu">';
+					if(!empty($user_subsets)) {
 						echo '<li class="dropdown-submenu"><a href="#">Add to subset</a>';
 						echo '<ul class="dropdown-menu">';
 						foreach($user_subsets as $us) {	
@@ -4398,15 +4397,15 @@ class molecules extends base {
 						echo '</li>';
 						
 						echo '<li class="divider"></li>';
-						echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'" class="create_subset">Create new subset</a></li>';
-						echo '</ul>';
-						echo '</li>';
-						
 					}
-					
-					echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
-					echo '<ul class="dropdown-menu selected-subset">';
-					
+					echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'" class="create_subset">Create new subset</a></li>';
+					echo '</ul>';
+					echo '</li>';		
+				}
+				
+				echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
+				echo '<ul class="dropdown-menu selected-subset">';
+				if(!empty($user_subsets)) {
 					echo '<li class="dropdown-submenu"><a href="#">Add to subset</a>';
 					echo '<ul class="dropdown-menu selected-subset-add">';
 					foreach($user_subsets as $us) {	
@@ -4414,7 +4413,7 @@ class molecules extends base {
 					}
 					echo '</ul>';
 					echo '</li>';
-	
+
 					echo '<li class="dropdown-submenu"><a href="#">Remove from subset</a>';
 					echo '<ul class="dropdown-menu selected-subset-del">';
 					foreach($user_subsets as $us) {	
@@ -4422,13 +4421,13 @@ class molecules extends base {
 					}
 					echo '</ul>';
 					echo '</li>';
-					
 					echo '<li class="divider"></li>';
 					echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'" class="create_subset_selected">Create new subset</a></li>';
-					
-					echo '</ul>';
-					echo '</li>';
+
 				}
+				
+				echo '</ul>';
+				echo '</li>';
 			       	echo '</ul>';
 				echo '</li>';
 		
