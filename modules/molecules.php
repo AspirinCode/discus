@@ -1431,7 +1431,8 @@ class molecules extends base {
 			$query = 'SELECT COUNT(conf.id) FROM '.$this -> project.'docking_conformations AS conf '.implode(' ', $sql_join).' WHERE mol2 IS NOT NULL '.(!empty($query_id) ? 'AND conf.id != "'.$query_id.'"' : '' ).' AND ('.implode(' OR ', $match_sql).') '.(!empty($sql_var) ? 'AND '.implode('AND', $sql_var) : '').';';
 			#echo $query.'</br>';
 			$this -> Database -> query($query);
-			$this -> result_num = $this -> Database -> fetch_row()[0];
+			$row = $this -> Database -> fetch_row();
+			$this -> result_num = $row[0];
 			
 			# get similar binders
 			$query = 'SELECT '.implode(', ', $fields).', '.implode('+',$match_count_sql).' AS score FROM '.$this -> project.'docking_conformations AS conf '.implode(' ', $sql_join).' WHERE mol2 IS NOT NULL '.(!empty($query_id) ? 'AND conf.id != "'.$query_id.'"' : '' ).' AND ('.implode(' OR ', $match_sql).') '.(!empty($sql_var) ? 'AND '.implode('AND', $sql_var) : '').' HAVING score > 0 ORDER BY '.(!empty($sort) ? $sort.' '.$sort_type : 'score DESC').' LIMIT '.(($this -> page - 1) * $this -> per_page).','.($this -> per_page).';';
