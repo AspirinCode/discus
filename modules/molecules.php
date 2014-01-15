@@ -4799,7 +4799,6 @@ class molecules extends base {
 								echo '<th>Docking target Activity [nM]</th>';
 							}
 							echo '<th class="target">Target</th>';
-							echo '<th>View in 3D</th>';
 						}
 						else {
 							echo '</th>';
@@ -4922,10 +4921,7 @@ class molecules extends base {
 										}
 								
 										# show target
-										echo '<td class="target">'.$mol[$tid]['target_name'].'</td>';
-										echo '<td>
-										<a href="'.$this -> get_link(array('mode' => 'molecule', 'mol_id' => $mol[$tid]['mol_id'], 'target_id' => $tid), array(), array('module', 'project', 'subset')).'#3d"><i class="icon-plus-sign"></i></a></br>
-										</td>';
+										echo '<td class="target"><a href="'.$this -> get_link(array('mode' => 'molecule', 'mol_id' => $mol[$tid]['mol_id'], 'target_id' => $tid), array(), array('module', 'project', 'subset')).'#3d">'.$mol[$tid]['target_name'].' <i class="icon-search"></i></a></td>';
 									}
 									elseif (@in_array($field[0], $this -> hide)) {
 										echo '';
