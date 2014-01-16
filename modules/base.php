@@ -380,10 +380,12 @@ class base {
 		$toolbar = '';
 		
 		#select project
-		$query = 'SELECT project.id, project.name, project.user_id, owner.login AS owner_name FROM '.$CONFIG['db_prefix'].'.docking_project AS project LEFT JOIN '.$CONFIG['db_prefix'].'.docking_users AS owner ON project.user_id = owner.id '.($this -> User -> gid() != 1 ? ' WHERE project.id IN ('.implode(',', $this -> User -> acl()).')' : '');
-		$this -> Database -> query($query);
-		while($row = $this -> Database -> fetch_assoc()) {
-			$projects[$row['id']] = $row;
+		if($this -> User -> gid() == 1 || $this -> User -> gid() != 1 && count($this -> User -> acl()) > 0) {
+			$query = 'SELECT project.id, project.name, project.user_id, owner.login AS owner_name FROM '.$CONFIG['db_prefix'].'.docking_project AS project LEFT JOIN '.$CONFIG['db_prefix'].'.docking_users AS owner ON project.user_id = owner.id '.($this -> User -> gid() != 1 ? ' WHERE project.id IN ('.implode(',', $this -> User -> acl()).')' : '');
+			$this -> Database -> query($query);
+			while($row = $this -> Database -> fetch_assoc()) {
+				$projects[$row['id']] = $row;
+			}
 		}
 		
 		$toolbar .= '<div class="btn-group">';
@@ -394,8 +396,8 @@ class base {
 				$selected = $row['id'] == $_GET['project'] ? ' selected' : '';
 				$toolbar .= '<li class="'.($pid == $_GET['project'] ? 'active' : '').'"><a href="./index.php?project='.$pid.'">'.($p['user_id'] != $this -> User -> id() ? '<span class="label">'.$p['owner_name'].'</span> ' : ' ').$p['name'].'</a></li>';
 			}
+			$toolbar .= '<li class="divider"></li>';
 		}
-		$toolbar .= '<li class="divider"></li>';
 		
 		$toolbar .= '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'new_project', 'ajax' => 1), array(), array('project', 'module')).'">New Project</a></li>';
 		
