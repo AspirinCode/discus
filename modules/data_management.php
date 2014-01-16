@@ -298,11 +298,9 @@ class data_management extends base {
 					if($this -> Database -> query($query)) {
 						$query = 'COMMIT;';
 						$this -> Database -> query($query);
-				
-						if(!IS_AJAX) {
-							echo json_encode(array("field_name"=>$field_name,"field_label"=>$field_label));
-							exit;	
-						}
+						
+						echo json_encode(array("field_name"=>$field_name,"field_label"=>$field_label));
+						exit;	
 					}
 					else {
 						$query = 'ROLLBACK;';
@@ -567,7 +565,7 @@ class data_management extends base {
 					echo '<option></option>';
 	
 					foreach ($this -> data_structure as $field) {
-						if($field[2] == 0 || $field[2] == 2) {
+						if($field[2] != 1 && $field[0] != 'name') {
 							echo '<option value='.$field[0].'>'.$field[0].'</option>';
 						}
 					}
@@ -618,7 +616,6 @@ class data_management extends base {
 									$('select[name^=mapping]', parent_td).val(data.field_name);
 								}
 								else {
-									alert("error");
 									$('select[name^=mapping]', parent_td).val('');
 								}
 							},
