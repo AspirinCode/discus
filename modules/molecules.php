@@ -889,7 +889,7 @@ class molecules extends base {
 			$query = 'SELECT DISTINCT mol.name FROM '.$this -> project.'docking_conformations AS conf '.implode(' ',$sql_join).' LEFT JOIN '.$this -> project.'docking_molecules_properties as molprop ON conf.mol_id = molprop.id LEFT JOIN '.$this -> project.'docking_molecules AS mol ON mol.id = conf.mol_id WHERE conf.id IN ('.(implode(',', $conf_id)).');';
 			$this -> Database -> query($query);
 			$num = $this -> Database -> num_rows();
-			if($num = 1) {
+			if($num == 1) {
 				$row = $this -> Database -> fetch_row();
 				$name = $row[0];
 			}
@@ -910,6 +910,12 @@ class molecules extends base {
 			$this -> Database -> query($query);
 			while($row = $this -> Database -> fetch_assoc()) {
 				$this -> mols[$row['id']] = $row;
+			}
+			if($num == 1) {
+				$name = $row['name'];
+			}
+			else {
+				$name = 'multimol-'.$num.'-'.time();
 			}
 		}
 		
