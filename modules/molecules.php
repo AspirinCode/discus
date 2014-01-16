@@ -1477,26 +1477,39 @@ class molecules extends base {
 	}
 	
 	public function subset_add() {
+		global $User;
 		# get project name and use it as table name
 		$this -> get_project_db();
-		$user_subset = (int) $_GET['subset_id_add'];
-		if(!empty($user_subset)) {
+		$subset_name = $this -> Database -> secure_mysql($_POST['subset_name']);
+		$subset_id = (int) $_GET['subset_id'];
+		if(!empty($subset_name)) {
+			$query = 'INSERT INTO '.$this -> project.'docking_user_subset (name, user_id) VALUES ("'.$subset_name.'", '.$User -> id().')';
+			#echo $query.'</br>';
+			$this -> Database -> query($query);
+			#header('Location: '.$this -> get_link(array('module' => 'molecules','mode' => 'subset_add', 'subset_id_add' => $this -> Database -> insert_id())));
+			$subset_id = $this -> Database -> insert_id();
+		}
+		
+		if(!empty($subset_id)) {
 			if(!empty($_GET['conf_ids'])) {
 				foreach($_GET['conf_ids'] as $id) {
-					$sql[] = '('.($user_subset).', '.((int) $id).')';
+					if((int) $id > 0) {
+						$sql[] = '('.($subset_id).', '.((int) $id).')';
+					}
 				}
 				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) VALUES '.implode(',', $sql).';';
 			}
 			elseif(!empty($_GET['mol_ids'])) {
-				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) SELECT '.($user_subset).', id FROM ('.$this -> search_sql(true).') AS temp WHERE mol_id IN ('.implode(',', array_map('intval', $_GET['mol_ids'])).');';
+				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) SELECT '.($subset_id).', id FROM ('.$this -> search_sql(true).') AS temp WHERE mol_id IN ('.implode(',', array_map('intval', $_GET['mol_ids'])).');';
 			}
 			else {	
-				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) SELECT '.($user_subset).', id FROM ('.$this -> search_sql(true).') AS temp;';
+				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_user_subset_members (user_subset_id, conf_id) SELECT '.($subset_id).', id FROM ('.$this -> search_sql(true).') AS temp;';
 			}
 			#echo $query.'</br>';
 			$this -> Database -> query($query);
 			$this -> num = $this -> Database -> affected_rows();
 		}
+		
 	}
 	
 	public function subset_del() {
@@ -2306,9 +2319,19 @@ class molecules extends base {
 	# HTML goes below
 	
 	public function view_subset_add() {
-		echo 'You have added '.$this -> num.' conformations to user subset.';
-		if(!IS_AJAX) {
-			echo '<a href="'.$this -> get_link(array('mode' => 'search')).'">Go back to your query</a>.';
+		$subset_name = $this -> Database -> secure_mysql($_POST['subset_name']);
+		$subset_id = (int) $_GET['subset_id'];
+		
+		if(empty($subset_name) && empty($subset_id)) {
+			echo '<form method="POST" action="'.$this -> get_link().'">';
+			echo '<input type="text" name="subset_name" class="input" placeholder="Subset Name">';
+			if(!IS_AJAX) {
+				echo '<input type="submit" class="btn" value="Create subset">';
+			}
+			echo '</form>';
+		}
+		else {
+			echo 'You have added '.$this -> num.' conformations to user subset.';
 		}
 	}
 	
@@ -3939,29 +3962,6 @@ class molecules extends base {
 		
 	}
 	
-	public function view_form_subsets() {
-		if($this -> result_num > 0) {
-			$query = 'SELECT * FROM '.$this -> project.'docking_user_subset';
-			$this -> Database -> query($query);
-			if($this -> Database -> num_rows() > 0) {
-				echo '<form method="POST" action="'.$this -> get_link(array('mode' => 'subset_add')).'">';
-				echo '<input type="submit" value="Add query to subset:">';
-				echo '<select name="subset_id_add">';
-				echo '<option></option>'; # empty option to force selection
-				while($row = $this -> Database -> fetch_assoc()) {
-					echo '<option value='.$row['id'].'>'.$row['name'].'</option>';
-				}
-				echo '</select>';
-				echo '</form>';
-			}
-		
-			echo '<input type="button" value="Create subset from query" onClick="create_subset(\''.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'\')">';
-		}
-		else {
-			echo 'There are no molecules.';
-		}
-	}
-	
 	public function view_form_downloads() {
 		if($this -> result_num > 0) {
 			echo '<input type="button" value="Download selected molecules" onClick="document.forms[\'selection-form\'].submit();">';
@@ -4160,7 +4160,6 @@ class molecules extends base {
 		$query = 'SELECT name , id FROM '.$this -> project.'docking_targets;';
 		$this -> Database -> query($query);
 		#echo $query;
-		$n=1;
 		while($row = $this -> Database -> fetch_assoc()) {
 			$targets[$row['id']] = $row;
 		}
@@ -4169,7 +4168,6 @@ class molecules extends base {
 		$query = 'SELECT name , id FROM '.$this -> project.'docking_ligand_subset;';
 		$this -> Database -> query($query);
 		#echo $query;
-		$n=1;
 		while($row = $this -> Database -> fetch_assoc()) {
 			$subsets[$row['id']] = $row;
 		}
@@ -4190,7 +4188,6 @@ class molecules extends base {
 				$query = 'SELECT COUNT(id) AS conf_num, COUNT(DISTINCT mol_id) AS mol_num  FROM '.$this -> project.'docking_conformations WHERE `target_id` = '.$target['id'].';';
 				$this -> Database -> query($query);
 				#echo $query;
-				$n=1;
 				$row = $this -> Database -> fetch_assoc();
 				echo '<tr>';
 				echo '<td>'.$n++.'</td>'; #rowspan="'.($counts[$row['tid']]['subset_num']+1).'"
@@ -4310,7 +4307,7 @@ class molecules extends base {
 			
 			echo '</br>';
 		
-			$query = 'SELECT subset.id AS sid, subset.name, COUNT(DISTINCT conf.mol_id) AS mol_num, COUNT(conf.id) AS conf_num  FROM '.$this -> project.'docking_conformations AS conf JOIN '.$this -> project.'docking_user_subset_members AS members ON conf.id = members.conf_id JOIN '.$this -> project.'docking_user_subset AS subset ON members.user_subset_id = subset.id GROUP BY members.user_subset_id;';
+			$query = 'SELECT subset.id AS sid, subset.name, COUNT(DISTINCT conf.mol_id) AS mol_num, COUNT(conf.id) AS conf_num  FROM '.$this -> project.'docking_user_subset AS subset LEFT JOIN '.$this -> project.'docking_user_subset_members AS members ON subset.id = members.user_subset_id LEFT JOIN '.$this -> project.'docking_conformations AS conf ON members.conf_id = conf.id GROUP BY members.user_subset_id;';
 			$this -> Database -> query($query);
 			if($this -> Database -> num_rows() > 0) {
 				# show subset summary table
@@ -4386,7 +4383,7 @@ class molecules extends base {
 						echo '<li class="dropdown-submenu"><a href="#">Add to subset</a>';
 						echo '<ul class="dropdown-menu">';
 						foreach($user_subsets as $us) {	
-							echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add', 'subset_id_add' => $us['id'])).'">'.$us['name'].'</a></li>';
+							echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add', 'subset_id' => $us['id'])).'">'.$us['name'].'</a></li>';
 						}
 						echo '</ul>';
 						echo '</li>';
@@ -4401,7 +4398,7 @@ class molecules extends base {
 						
 						echo '<li class="divider"></li>';
 					}
-					echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'" class="create_subset">Create new subset</a></li>';
+					echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add', 'subset_name' => '')).'" class="create_subset">Create new subset</a></li>';
 					echo '</ul>';
 					echo '</li>';		
 				}
@@ -4425,10 +4422,10 @@ class molecules extends base {
 					echo '</ul>';
 					echo '</li>';
 					echo '<li class="divider"></li>';
-					echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'subsets','mode' => 'create', 'subset_name' => '')).'" class="create_subset_selected">Create new subset</a></li>';
+					
 
 				}
-				
+				echo '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('mode' => 'subset_add', 'subset_name' => '')).'" class="create_subset_selected">Create new subset</a></li>';
 				echo '</ul>';
 				echo '</li>';
 			       	echo '</ul>';
@@ -4542,22 +4539,12 @@ class molecules extends base {
 	 				
 	 				$(this).attr('href', $(this).attr('href').split(glue)[0] + glue + values.join(glue));
 	 			});
-	 			$('a.create_subset').click(function() {
-	 				subset_name = prompt('Choose name for new subset:');
-					if(subset_name) {
-						$(this).attr('href', $(this).attr('href').split("&subset_name=")[0] + "&subset_name=" + subset_name);
-					}
-					else {
-						e.preventDefault();
-					}
-	 			});
-	 			
-	 			$('a.create_subset_selected').click(function() {
+	 			$('a.create_subset_selected').click(function(e) {
 	 				var values = $('input:checked', $('form[name="selection-form"]')).map(function(){
 							return $(this).val();
 						}).get()
 	 				
-	 				if($('input:checked', $('form[name="selection-form"]')).attr('name') == 'mol_ids[]') {
+	 				if($('input:checked', $('form[name="selection-form"]')).last().attr('name') == 'mol_ids[]') {
 	 					var glue = '&mol_ids[]=';
 	 				}
 	 				else {
@@ -4565,14 +4552,6 @@ class molecules extends base {
 	 				}
 	 				
 	 				$(this).attr('href', $(this).attr('href').split(glue)[0] + glue + values.join(glue));
-	 				
-	 				subset_name = prompt('Choose name for new subset:');
-					if(subset_name) {
-						$(this).attr('href', $(this).attr('href').split("&subset_name=")[0] + "&subset_name=" + subset_name);
-					}
-					else {
-						e.preventDefault();
-					}
 	 			});
 	 		});
 	 		//disable at load
