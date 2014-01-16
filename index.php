@@ -69,7 +69,9 @@ if(file_exists('config.php')) {
 		# for ajax
 		if(IS_AJAX) {
 			$view = 'view_'.$mode;
-			$mod -> $view();
+			if(method_exists($mod,$view)) {
+				$mod -> $view();
+			}
 			exit;
 		}
 	}
@@ -191,14 +193,29 @@ $(function() {
 		}
 	})
 	
-	//modal header modification
+	// modal header modification
 	$('a[data-toggle="modal"]').click(function() {
-		$('#modal > .modal-header > h3').text($(this).text());
+		if($(this).text() != '') {
+			$('#modal > .modal-header > h3').text($(this).text());
+		}
 		$('#modal > .modal-footer > button').addClass('btn-success').removeClass('disabled').html('Submit').show();
 	});
+	
+	// disable modal toggles inside modal
+	$('#modal').on('shown', function () {
+		$("a[data-target=#modal]", $('#modal > .modal-body')).click(function(e) {
+			e.preventDefault();
+			$("#modal > .modal-body").load($(this).attr("href"), function () {
+				if($('#modal > .modal-body > form').length > 0) {
+					$('#modal > .modal-footer > button').addClass('btn-success').removeClass('disabled').html('Submit').show();
+				}
+			});	
+		});
+	});
+	
 	// destroy modal when hidden
 	$('body').on('hidden', '.modal', function () {
-	  $(this).removeData('modal');
+		$(this).removeData('modal');
 	});
 });
 </script>
