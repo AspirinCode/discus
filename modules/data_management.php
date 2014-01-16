@@ -397,7 +397,17 @@ class data_management extends base {
 		}
 	}
 	
-	public function subset_edit() {	
+	public function subset_edit() {
+	
+	}
+	
+	public function subset_delete() {
+		if($this -> User -> gid() == 1 && !empty($_POST['confirm']) && !empty($_GET['sid'])) {
+			$query = 'DELETE FROM '.$this -> project.'docking_ligand_subset WHERE id = "'.(int) $_GET['sid'].'";';
+			if($this -> Database -> query($query)) {
+				$this -> status = 'deleted';
+			}
+		}
 	}
 	
 	#####
@@ -880,12 +890,46 @@ class data_management extends base {
 				echo '<tr>';
 				echo '<td>'.$row['name'].'</td>';
 				echo '<td>'.$row['description'].'</td>';
-				echo '<td><a class="query_delete_target btn btn-warning btn-mini"><i class="icon-edit icon-white"></i></a></td>';
-				echo '<td><a class="query_delete_target btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
+				echo '<td><a class="btn btn-warning btn-mini"><i class="icon-edit icon-white"></i></a></td>';
+				echo '<td><a href="'.$this -> get_link(array('mode' => 'subset_delete', 'sid' => $row['id'])).'" data-target="#modal" class="query_delete_target btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
 				echo '</tr>';
 			}
 			
 			echo '</table>';
+		}
+	}
+	
+	public function view_subset_delete() {
+		global $CONFIG;
+		# allow only admin
+		if($this -> User -> gid() != 1) {
+			$this -> view_forbidden();
+			exit;
+		}
+		
+		if($this -> User -> gid() == 1) {
+			if(!empty($_POST['confirm']) && $this -> status == 'deleted') {
+				echo '<div class="alert alert-success">';
+				echo 'Subset successfuly deleted';
+				echo '</div>';
+			}
+			else {
+				# get user name
+				$query = 'SELECT id, name FROM '.$this -> project.'docking_ligand_subset WHERE id = '.(int) $_GET['sid'].';';
+				$this -> Database -> query($query);
+				$row = $this -> Database -> fetch_assoc();
+				echo '<form method="POST" action="'.$this -> get_link().'">';
+				echo '<div class="alert alert-error">';
+				echo '<b>LAST WARNING!</b> Do you want to delete subset <b>'.$row['name'].'</b>? This action cannot be reverted!</br>';
+				echo '<input type="hidden" name="confirm" value="1">';
+				if(!IS_AJAX) {
+					echo '<button class="btn btn-danger">Confirm</button>';
+				}
+				echo '</div>';
+				echo '</form>';
+
+			}
+			
 		}
 	}
 }
