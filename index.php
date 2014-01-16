@@ -149,6 +149,7 @@ else {
     <h3>Modal header</h3>
   </div>
   <div class="modal-body">
+  <div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-large btn-success">Submit</button>
