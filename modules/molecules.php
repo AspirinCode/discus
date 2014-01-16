@@ -2952,7 +2952,7 @@ class molecules extends base {
 					if ($field[0] == 'name') {
 						# index field
 						echo '<th>#</th>';
-						echo '<th class="selection"><input type="checkbox" name="selall-conf_id[]"/></th><th class="name">';
+						echo '<th class="selection"><input type="checkbox" name="selall-mol_id[]"/></th><th class="name">';
 					}
 					else {
 						echo '<th>';
@@ -2979,10 +2979,12 @@ class molecules extends base {
 							# index field
 							echo '<td id="mol-num-'.$mol[$tid]['mol_id'].'" class="normal">'.((($this -> page - 1) * $this -> per_page)+$num).'</td>';
 							# show checkbox
-							echo '<td class="selection"><input type="checkbox" name="conf_id[]" name="selall-conf_id[]" value="'.$mol['id'].'"/></td>';
+							echo '<td class="selection"><input type="checkbox" name="mol_id[]" value="'.$mol['mol_id'].'"/></td>';
 							$img_size_prev = 100; # small IMG size
 							$img_size_big = 300;
-							echo '<td>'.$mol['name'].'</br>';
+							echo '<td>';
+							echo '<a href="'.$this -> get_link(array('mode' => 'molecule', 'mol_id' => $mol['mol_id']), array(), array('project', 'module')).'">';
+							echo $mol['name'].'</br>';
 							echo '<img src="openbabel_ajax.php?smiles='.rawurlencode($mol['smi']).'&output=svg" class="mol" width="'.$img_size_prev.'" height="'.$img_size_prev.'"/></a>';
 							echo '</td>';
 							echo '<td class="name">'.round($mol['rank_score'],4).'</td>'; 
