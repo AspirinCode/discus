@@ -836,8 +836,9 @@ class molecules extends base {
 		}
 		
 		# get list of fields
-		foreach ($this -> data_structure as $field) { 
-			if(!@in_array($field[0], $this -> hide)) {
+		foreach ($this -> data_structure as $field) {
+			# get only conformational prop
+			if(!@in_array($field[0], $this -> hide) && $field[2] != 1) {
 				$fields[] = (!empty($field[3]) ? $field[3] : 'conf.').$field[0];
 			}
 		}
@@ -858,7 +859,7 @@ class molecules extends base {
 			$name = $row[0];
 		
 			# download mol2's
-			$query = 'SELECT conf.id, name, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).'  FROM '.$this -> project.'docking_conformations AS conf '.implode(' ',$sql_join).' LEFT JOIN '.$this -> project.'docking_molecules_properties as molprop ON conf.mol_id = molprop.id LEFT JOIN '.$this -> project.'docking_conformations_properties as confprop ON conf.id = confprop.id LEFT JOIN '.$this -> project.'docking_conformations_interactions as confint ON conf.id = confint.id WHERE conf.mol_id = "'.$mol_id.'" AND conf.target_id = "'.$target_id.'" '.(!empty($sql_var) ? 'AND '.implode(' AND ',$sql_var) : '').' ORDER BY '.$this -> sorting['sort'].';';	
+			$query = 'SELECT conf.id, name, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).'  FROM '.$this -> project.'docking_conformations AS conf '.implode(' ',$sql_join).' LEFT JOIN '.$this -> project.'docking_conformations_properties as confprop ON conf.id = confprop.id LEFT JOIN '.$this -> project.'docking_conformations_interactions as confint ON conf.id = confint.id WHERE conf.mol_id = "'.$mol_id.'" AND conf.target_id = "'.$target_id.'" '.(!empty($sql_var) ? 'AND '.implode(' AND ',$sql_var) : '').' ORDER BY '.$this -> sorting['sort'].';';	
 			$this -> Database -> query($query);
 			#echo $query;
 			while($row = $this -> Database -> fetch_assoc()) {
@@ -872,7 +873,7 @@ class molecules extends base {
 			}		
 			# download mol2's
 			foreach($mol_ids as $mol_id) {
-				$query = 'SELECT conf.id, name, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).'  FROM '.$this -> project.'docking_conformations AS conf '.implode(' ',$sql_join).' LEFT JOIN '.$this -> project.'docking_molecules_properties as molprop ON conf.mol_id = molprop.id LEFT JOIN '.$this -> project.'docking_conformations_properties as confprop ON conf.id = confprop.id LEFT JOIN '.$this -> project.'docking_conformations_interactions as confint ON conf.id = confint.id WHERE conf.mol_id = "'.$mol_id.'" AND conf.target_id = "'.$target_id.'" '.(!empty($sql_var) ? 'AND '.implode(' AND ',$sql_var) : '').' ORDER BY '.$this -> sorting['sort'].';';	
+				$query = 'SELECT conf.id, name, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).'  FROM '.$this -> project.'docking_conformations AS conf '.implode(' ',$sql_join).' LEFT JOIN '.$this -> project.'docking_conformations_properties as confprop ON conf.id = confprop.id LEFT JOIN '.$this -> project.'docking_conformations_interactions as confint ON conf.id = confint.id WHERE conf.mol_id = "'.$mol_id.'" AND conf.target_id = "'.$target_id.'" '.(!empty($sql_var) ? 'AND '.implode(' AND ',$sql_var) : '').' ORDER BY '.$this -> sorting['sort'].';';	
 				$this -> Database -> query($query);
 				while($row = $this -> Database -> fetch_assoc()) {
 					$this -> mols[$row['id']] = $row;
@@ -886,7 +887,7 @@ class molecules extends base {
 			}
 			
 			# get molecule name (if one), else name multi-
-			$query = 'SELECT DISTINCT mol.name FROM '.$this -> project.'docking_conformations AS conf '.implode(' ',$sql_join).' LEFT JOIN '.$this -> project.'docking_molecules_properties as molprop ON conf.mol_id = molprop.id LEFT JOIN '.$this -> project.'docking_molecules AS mol ON mol.id = conf.mol_id WHERE conf.id IN ('.(implode(',', $conf_id)).');';
+			$query = 'SELECT DISTINCT mol.name FROM '.$this -> project.'docking_conformations AS conf '.implode(' ',$sql_join).' LEFT JOIN '.$this -> project.'docking_molecules AS mol ON mol.id = conf.mol_id WHERE conf.id IN ('.(implode(',', $conf_id)).');';
 			$this -> Database -> query($query);
 			$num = $this -> Database -> num_rows();
 			if($num == 1) {
@@ -899,14 +900,14 @@ class molecules extends base {
 			
 			# download mol2's
 			foreach($conf_id as $conf) {
-				$query = 'SELECT conf.id, name, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).'  FROM '.$this -> project.'docking_conformations AS conf '.implode(' ',$sql_join).' LEFT JOIN '.$this -> project.'docking_molecules_properties as molprop ON conf.mol_id = molprop.id LEFT JOIN '.$this -> project.'docking_conformations_properties as confprop ON conf.id = confprop.id LEFT JOIN '.$this -> project.'docking_conformations_interactions as confint ON conf.id = confint.id WHERE conf.id = "'.$conf.'" LIMIT 1;';	
+				$query = 'SELECT conf.id, name, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).'  FROM '.$this -> project.'docking_conformations AS conf '.implode(' ',$sql_join).' LEFT JOIN '.$this -> project.'docking_conformations_properties as confprop ON conf.id = confprop.id LEFT JOIN '.$this -> project.'docking_conformations_interactions as confint ON conf.id = confint.id WHERE conf.id = "'.$conf.'" LIMIT 1;';	
 				$this -> Database -> query($query);
 				$row = $this -> Database -> fetch_row();
 				$this -> mols[$row['id']] = $row;
 			}
 		}
 		else {
-			$query = 'SELECT conf.id, UNCOMPRESS(conf.mol2) as mol2 FROM ('.$this -> search_sql(true).') as temp JOIN '.$this -> project.'docking_conformations AS conf ON conf.id = temp.id WHERE conf.target_id = '.$target_id.(!empty($sql_var) ? ' AND '.implode(' AND ',$sql_var) : '');
+			$query = 'SELECT conf.id, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).' FROM ('.$this -> search_sql(true).') as temp JOIN '.$this -> project.'docking_conformations AS conf ON conf.id = temp.id LEFT JOIN '.$this -> project.'docking_conformations_properties AS confprop ON confprop.id = temp.id WHERE conf.target_id = '.$target_id.(!empty($sql_var) ? ' AND '.implode(' AND ',$sql_var) : '');
 			$this -> Database -> query($query);
 			while($row = $this -> Database -> fetch_assoc()) {
 				$this -> mols[$row['id']] = $row;
@@ -962,7 +963,7 @@ class molecules extends base {
 				$lig .= "\n";
 				$lig .= sprintf("########## %12s: %20s\n", 'Name', $mol['name']);
 				foreach ($this -> data_structure as $field) { 
-					if(!@in_array($field[0], $this -> hide)) {
+					if(!@in_array($field[0], $this -> hide) && $field != 1) {
 						$lig .= sprintf("########## %12s: %20s\n", $field[1], $mol[$field[0]]);
 					}
 				}
