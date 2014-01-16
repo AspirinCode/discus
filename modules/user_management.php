@@ -74,8 +74,11 @@ class user_management extends base {
 	}
 	
 	public function user_delete() {
-		if($this -> User -> gid() == 1) {
-			
+		if($this -> User -> gid() == 1 && !empty($_POST['confirm']) && !empty($_GET['uid'])) {
+			$query = 'DELETE FROM '.$CONFIG['db_name'].'docking_users WHERE id = "'.(int) $_GET['uid'].'";';
+			if($this -> Database -> query($query)) {
+				$this -> status = 'deleted';
+			}
 		}
 	}
 	
@@ -256,16 +259,23 @@ class user_management extends base {
 					echo '</td>';
 				}
 				
-				echo '<td><a class="query_delete_target btn btn-warning btn-mini"><i class="icon-edit icon-white"></i></a></td>';
-				echo '<td><a class="query_delete_target btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
+				echo '<td><a class="btn btn-warning btn-mini"><i class="icon-edit icon-white"></i></a></td>';
+				echo '<td><a href="'.$this -> get_link(array('mode' => 'user_delete', 'uid' => $row['id'])).'" data-target="#modal" class="query_delete_target btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
 				echo '</tr>';
 			}
 			
 			echo '</table>';
+			?>
+			<script>
+			
+			</script>
+			<?php
 		}
 	}
 	
 	public function view_user_delete() {
+		global $CONFIG;
+		
 		# allow only admin
 		if($this -> User -> gid() != 1) {
 			$this -> view_forbidden();
@@ -273,10 +283,19 @@ class user_management extends base {
 		}
 		
 		if($this -> User -> gid() == 1) {
-			if(empty($_POST['confirm'])) {
+			if(!empty($_POST['confirm']) && $this -> status == 'deleted') {
+				echo '<div class="alert alert-success">';
+				echo 'User successfuly deleted';
+				echo '</div>';
+			}
+			else {
+				# get user name
+				$query = 'SELECT id, login, fullname FROM '.$CONFIG['db_prefix'].'.docking_users WHERE id = '.(int) $_GET['uid'].';';
+				$this -> Database -> query($query);
+				$row = $this -> Database -> fetch_assoc();
 				echo '<form method="POST" action="'.$this -> get_link().'">';
 				echo '<div class="alert alert-error">';
-				echo '<b>LAST WARNING!</b> Do you want to delete user <b></b>? This action cannot be reverted!</br>';
+				echo '<b>LAST WARNING!</b> Do you want to delete user <b>'.$row['login'].(!empty($row['fullname']) ? ' ['.$row['fullname'].']' : '').'</b>? This action cannot be reverted!</br>';
 				echo '<input type="hidden" name="confirm" value="1">';
 				if(!IS_AJAX) {
 					echo '<button class="btn btn-danger">Confirm</button>';
@@ -285,9 +304,7 @@ class user_management extends base {
 				echo '</form>';
 
 			}
-			else {
-				echo 'kill';
-			}
+			
 		}
 	}
 }
