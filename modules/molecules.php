@@ -3274,19 +3274,22 @@ class molecules extends base {
 					}			
 					echo '<a href="'.$this -> get_link($sub).'">'.$field[1].' '.$arrow.'</a></th>';
 					if ($field[0] == name) {
-						echo '</th><th class="action">Binding profile <div class="badge badge-inverse binding_profile_info"><i class="icon-info-sign icon-white"></i></div>
-						<div class="badge badge-warning"><input name="crude-checkbox" type="checkbox"> precise only</div>
-						<script>
-						$(function() {
-							$(".binding_profile_info").popover({trigger: "hover", html : "true", placement: "bottom", title : "Color mapping", content: \'';
-						foreach($this -> interaction_types as $int) {
-							echo '<div class="label '.$int[0].'" style="width:95%">'.$int[1].'</div></br>';
-						}
+						echo '</th>';
+						if(!empty($this -> binding_profile)) {
+							echo '<th class="action">Binding profile <div class="badge badge-inverse binding_profile_info"><i class="icon-info-sign icon-white"></i></div>
+							<div class="badge badge-warning"><input name="crude-checkbox" type="checkbox"> precise only</div>
+							<script>
+							$(function() {
+								$(".binding_profile_info").popover({trigger: "hover", html : "true", placement: "bottom", title : "Color mapping", content: \'';
+							foreach($this -> interaction_types as $int) {
+								echo '<div class="label '.$int[0].'" style="width:95%">'.$int[1].'</div></br>';
+							}
 						
-						echo '\'});
-						});
-						</script>
-						</th>';
+							echo '\'});
+							});
+							</script>
+							</th>';
+						}
 					}
 					else {
 						echo '</th>';
@@ -3309,47 +3312,49 @@ class molecules extends base {
 								$img_size_prev = 100; # small IMG size
 								$img_size_big = 300;
 								echo '<td class="name">'.$mol['name'].'</td>';
-								echo '<td>';
-								#build binding profile
-								$binding_profile = $mol['binding_profile'];
+								if(!empty($this -> binding_profile)) {
+									echo '<td>';
+									#build binding profile
+									$binding_profile = $mol['binding_profile'];
 								
-								if(!empty($this -> binding_profile) && !empty($binding_profile)) {
-									echo '<div class="binding_profile spacer"></div>';
-									foreach($this -> binding_profile as $rid => $res) {
-										if(!empty($res['precise']) || !empty($res['crude'])) {
-											echo '<div id="'.$rid.'" class="binding_profile_residue">';
-											if(!empty($res['precise'])) {
-												foreach($res['precise'] as $inter_id => $interaction) {
-													if(!empty($binding_profile[$rid]['precise'][$inter_id])) {
-														echo '<div class="binding_profile interaction '.$binding_profile[$rid]['precise'][$inter_id][1].'"></div>';
-													}
-													else {
-														echo '<div class="binding_profile"></div>';
-													}
-												}
-											}
-											if(!empty($res['crude'])) {
-												foreach($res['crude'] as $inter_id => $interaction) {
-													if(!empty($binding_profile[$rid]['crude'][$inter_id])) {
-														echo '<div class="binding_profile interaction '.$binding_profile[$rid]['crude'][$inter_id][1].' crude"></div>';
-													}
-													else {
-														echo '<div class="binding_profile crude"></div>';
+									if(!empty($this -> binding_profile) && !empty($binding_profile)) {
+										echo '<div class="binding_profile spacer"></div>';
+										foreach($this -> binding_profile as $rid => $res) {
+											if(!empty($res['precise']) || !empty($res['crude'])) {
+												echo '<div id="'.$rid.'" class="binding_profile_residue">';
+												if(!empty($res['precise'])) {
+													foreach($res['precise'] as $inter_id => $interaction) {
+														if(!empty($binding_profile[$rid]['precise'][$inter_id])) {
+															echo '<div class="binding_profile interaction '.$binding_profile[$rid]['precise'][$inter_id][1].'"></div>';
+														}
+														else {
+															echo '<div class="binding_profile"></div>';
+														}
 													}
 												}
+												if(!empty($res['crude'])) {
+													foreach($res['crude'] as $inter_id => $interaction) {
+														if(!empty($binding_profile[$rid]['crude'][$inter_id])) {
+															echo '<div class="binding_profile interaction '.$binding_profile[$rid]['crude'][$inter_id][1].' crude"></div>';
+														}
+														else {
+															echo '<div class="binding_profile crude"></div>';
+														}
+													}
+												}
+												echo '</div>';
+												#add spacer
+												echo '<div class="binding_profile spacer"></div>';
 											}
-											echo '</div>';
-											#add spacer
-											echo '<div class="binding_profile spacer"></div>';
 										}
+										echo '<button type="button" class="binding_profile_preview btn btn-mini"><i class="icon-search"></i></button>';
+										echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini">Find Similar</a>';
 									}
-									echo '<button type="button" class="binding_profile_preview btn btn-mini"><i class="icon-search"></i></button>';
-									echo '<a href="'.$this -> get_link(array('mode' => 'interactions', 'query_id' => $mol['id'])).'" class="btn btn-mini">Find Similar</a>';
+									else {
+										echo '<span class="label label-warning">No interactions found</span>';
+									}
+									echo '</td>';
 								}
-								else {
-									echo '<span class="label label-warning">No interactions found</span>';
-								}
-								echo '</td>';
 							
 							}
 							elseif (@in_array($field[0], $this -> hide)) {
