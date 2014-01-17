@@ -38,6 +38,20 @@ class base {
 		$this -> User = $User;
 		$this -> OBConversion = new OBConversion;
 		
+		# pagination
+		$this -> page = $_GET['page'] ? $_GET['page'] : ($_POST['page'] ? $_POST['page'] : 1);
+		
+		if((int)$_GET['pp'] > $this -> per_page) {
+			$this -> per_page = (int) $_GET['pp'];
+			if($_COOKIE['pp'] != $_GET['pp']) {
+				setcookie('pp', $this -> per_page, time() + 3600 * 24 * 30);
+			}
+		}
+		elseif(!empty($_COOKIE['pp'])) {
+			$this -> per_page = $_COOKIE['pp'];
+		}	
+		$this -> offset = ($this -> page - 1) * $this -> per_page;
+		
 		$this -> data_structure();
 		
 		# check acl
@@ -58,13 +72,6 @@ class base {
 		$project = (int) $this -> Database -> secure_mysql($_GET['project'] ? $_GET['project'] : $_POST['project']);
 		$this -> project = $CONFIG['db_name'].'.project_'.$project.'_';
 		$this -> project_id = $project;
-		
-		# pagination
-		$this -> page = $_GET['page'] ? $_GET['page'] : ($_POST['page'] ? $_POST['page'] : 1);
-		if((int)$_GET['pp'] > $this -> per_page) {
-			$this -> per_page = (int)$_GET['pp'];
-		}	
-		$this -> offset = ($this -> page - 1) * $this -> per_page;
 	}
 	
 	# get permanent link
