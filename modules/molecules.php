@@ -4446,80 +4446,55 @@ class molecules extends base {
 				echo '<li class="dropdown pull-right"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>';
 			
 				echo '<ul class="dropdown-menu">';	
-			
-				echo '<li class="dropdown-submenu"><a href="#">Query</a>';
-				echo '<ul class="dropdown-menu">';
-				foreach($this -> target as $tid) {
-					echo '<li class="dropdown-submenu"><a href="#">'.$this -> target_names[$tid].'</a>';
-					echo '<ul class="dropdown-menu">';
-					foreach($formats as $format) {
-						echo '<li><a href="'.$this -> get_link(array('mode' => 'download_molecule', 'format' => $format, 'target_id' => $tid)).'">'.$format.'</a></li>';
-					}
-			       		echo '</ul>';
-			       		echo '</li>';
-			       	}
-			       	echo '</ul>';
-			       	echo '</li>';
-			
-			       	echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
-				echo '<ul class="dropdown-menu selected-download">';
-				foreach($this -> target as $tid) {
-					echo '<li class="dropdown-submenu"><a href="">'.$this -> target_names[$tid].'</a>';
-					echo '<ul class="dropdown-menu selected-download">';
-					foreach($formats as $format) {
-						echo '<li><a href="'.$tid.'">'.$format.'</a></li>';
-					}
-			       		echo '</ul>';
-			       		echo '</li>';
-			       	}
-			       	echo '</ul>';
-			       	echo '</li>';
-			
-			       	echo '</ul>';
-				echo '</li>';
-			
-			}
-			elseif(in_array($_GET['mode'], array('molecule'))) {
-			
-				echo '<li class="dropdown pull-right"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>';
-			
-				if(!empty($_GET['subset']) && !empty($_GET['target_id'])) {
 				
-					echo '<ul class="dropdown-menu">';
-				
+				if($_GET['mode'] == 'molecule') {
 					echo '<li class="dropdown-submenu"><a href="#">All</a>';
 					echo '<ul class="dropdown-menu">';
 					foreach($formats as $format) {
-						echo '<li><a href="'.$this -> get_link(array('mode' => 'download_molecule', 'format' => $format), array(), array('project', 'module', 'mode', 'mol_id', 'target_id', 'subset')).'">'.$format.'</a></li>';
+						echo '<li><a href="'.$this -> get_link(array('mode' => 'download_molecule', 'format' => $format, 'target_id' => (int) $_GET['target_id'])).'">'.$format.'</a></li>';
 					}
 				       	echo '</ul>';
 				       	echo '</li>';
-				
-					echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
+				       	
+				       	echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
 					echo '<ul class="dropdown-menu selected-download">';
 					foreach($formats as $format) {
 						echo '<li><a href="">'.$format.'</a></li>';
 					}
 				       	echo '</ul>';
-				       	echo '</li>';
-				       	
+				}
+				else {			
+					echo '<li class="dropdown-submenu"><a href="#">Query</a>';
+					echo '<ul class="dropdown-menu">';
+					foreach($this -> target as $tid) {
+						echo '<li class="dropdown-submenu"><a href="#">'.$this -> target_names[$tid].'</a>';
+						echo '<ul class="dropdown-menu">';
+						foreach($formats as $format) {
+							echo '<li><a href="'.$this -> get_link(array('mode' => 'download_molecule', 'format' => $format, 'target_id' => $tid)).'">'.$format.'</a></li>';
+						}
+				       		echo '</ul>';
+				       		echo '</li>';
+				       	}
 				       	echo '</ul>';
-				}
-				echo '</li>';
-			}
-			elseif($this -> result_num > 0) {
-				echo '<li class="dropdown pull-right"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>';
-				echo '<ul class="dropdown-menu">';
-				echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
-				echo '<ul class="dropdown-menu selected-download">';
-				foreach($formats as $format) {
-					echo '<li><a href="">'.$format.'</a></li>';
+				       	echo '</li>';
+			
+				       	echo '<li class="dropdown-submenu"><a href="#">Selected</a>';
+					echo '<ul class="dropdown-menu selected-download">';
+					foreach($this -> target as $tid) {
+						echo '<li class="dropdown-submenu"><a href="">'.$this -> target_names[$tid].'</a>';
+						echo '<ul class="dropdown-menu selected-download">';
+						foreach($formats as $format) {
+							echo '<li><a href="'.$tid.'">'.$format.'</a></li>';
+						}
+				       		echo '</ul>';
+				       		echo '</li>';
+				       	}
+				       	echo '</ul>';
+				       	echo '</li>';
 				}
 			       	echo '</ul>';
-			       	echo '</li>';
-			       	
-			       	echo '</ul>';
 				echo '</li>';
+			
 			}
 	 		
 	 		echo '</ul>';
