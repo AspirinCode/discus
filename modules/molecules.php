@@ -4299,7 +4299,9 @@ class molecules extends base {
 			echo '<th>Subset</th>';
 			echo '<th># of ligands</th>';
 			echo '<th># of conformations</th>';
-			echo '<th colspan=2>Administration</th>';
+			if($this -> User -> gid() == 1) {
+				echo '<th colspan=2>Administration</th>';
+			}
 			echo '</tr>';
 			$query = 'SELECT ligand_subset, COUNT(DISTINCT conf.mol_id) AS mol_num, COUNT(conf.id) AS conf_num  FROM '.$this -> project.'docking_conformations AS conf GROUP BY ligand_subset;';
 			$this -> Database -> query($query);
@@ -4311,8 +4313,10 @@ class molecules extends base {
 				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'subset' => 'ligand-'.$row['ligand_subset']), array(), array('project')).'">'.$subsets[$row['ligand_subset']]['name'].'</a></th>';
 				echo '<td><span class="badge badge-success">'.number_format($row['mol_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
 				echo '<td><span class="badge">'.number_format($row['conf_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
-				echo '<td></th>';
-				echo '<td><a href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'subset_delete', 'sid' => $row['ligand_subset'])).'" data-toggle="modal" data-target="#modal" class="btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
+				if($this -> User -> gid() == 1) {
+					echo '<td></td>';
+					echo '<td><a href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'subset_delete', 'sid' => $row['ligand_subset'])).'" data-toggle="modal" data-target="#modal" class="btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
+				}
 				echo '</tr>';
 			}
 			echo '</table>';
@@ -4329,7 +4333,9 @@ class molecules extends base {
 				echo '<th>User subset</th>';
 				echo '<th># of ligands</th>';
 				echo '<th># of conformations</th>';
-				echo '<th colspan=2>Administration</th>';
+				if($this -> User -> gid() == 1) {
+					echo '<th colspan=2>Administration</th>';
+				}
 				echo '</tr>';
 				$n=1;
 				while($row = $this -> Database -> fetch_assoc()) {
@@ -4338,8 +4344,10 @@ class molecules extends base {
 					echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'subset' => 'user-'.$row['sid']), array(), array('project')).'">'.$row['name'].'</a></th>';
 					echo '<td><span class="badge badge-success">'.number_format($row['mol_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
 					echo '<td><span class="badge">'.number_format($row['conf_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
-					echo '<td></th>';
-					echo '<td><a href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'user_subset_delete', 'sid' => $row['sid'])).'" data-toggle="modal" data-target="#modal" class="btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
+					if($this -> User -> gid() == 1) {
+						echo '<td></td>';
+						echo '<td><a href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'user_subset_delete', 'sid' => $row['sid'])).'" data-toggle="modal" data-target="#modal" class="btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
+					}
 					echo '</tr>';
 				}
 				echo '</table>';
