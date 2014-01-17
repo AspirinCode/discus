@@ -879,7 +879,7 @@ class molecules extends base {
 					$this -> mols[$row['id']] = $row;
 				}
 			}
-			$name = 'multimol-'.count($mol_ids).'-'.time();
+			$name = 'multimol-'.count($mol_ids).'-'.date("Y-m-d_H:i:s");
 		}
 		elseif(count($_GET['conf_id']) > 0) {
 			foreach($_GET['conf_id'] as $conf) {
@@ -895,7 +895,7 @@ class molecules extends base {
 				$name = $row[0];
 			}
 			elseif($num > 1) {
-				$name = 'multimol-'.$num.'-'.time();
+				$name = 'multimol-'.$num.'-'.date("Y-m-d_H:i:s");
 			}
 			
 			# download mol2's
@@ -916,7 +916,7 @@ class molecules extends base {
 				$name = $row['name'];
 			}
 			else {
-				$name = 'multimol-'.$num.'-'.time();
+				$name = 'multimol-'.$num.'-'.date("Y-m-d_H:i:s");
 			}
 		}
 		
