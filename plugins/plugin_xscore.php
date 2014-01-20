@@ -24,7 +24,7 @@ along with DiSCuS.  If not, see <http://www.gnu.org/licenses/>.
 class plugin_xscore extends plugin_interface {
 	public static $name = 'Xscore';
 	public static $desc = 'Computes Tripos CScore values';
-	public $batch_size = 0; # default size of batch, it's suppose to be as high as possible, although computation time should be lower than 10sec; 0 = unlimited
+	public $batch_size = 1000; # default size of batch, it's suppose to be as high as possible, although computation time should be lower than 10sec; 0 = unlimited
 	
 	public static $input = array('ligands' => 'mol2', 'receptor' => 'pdb');
 
@@ -48,7 +48,7 @@ class plugin_xscore extends plugin_interface {
 		file_put_contents($this -> temp_dir.'/ligands.mol2', $ligands);
 		
 		# run Xscore
-		exec('XSCORE_PARAMETER=./plugins/xscore/parameter ./plugins/xscore/bin/xscore -score '.$this -> temp_dir.'/target.pdb '.$this -> temp_dir.'/ligands.mol2', $o);
+		exec('cd '.$this -> temp_dir.' && XSCORE_PARAMETER=../../plugins/xscore/parameter ../../plugins/xscore/bin/xscore -score target.pdb ligands.mol2', $o);
 		
 		# filter output from warnings etc.
 		$scores = preg_grep('/^Molecule/', $o);
@@ -59,9 +59,6 @@ class plugin_xscore extends plugin_interface {
 			$csv = str_getcsv(preg_replace('/\s+/', ' ', $line), ' ');
 			$out[$csv[7]] = array('hpscore' => $csv[2], 'hmscore' => $csv[3], 'hsscore' => $csv[4], 'ave_score' => $csv[5], 'xscore_bind_energy' => $csv[6]);
 		}
-		
-		#remove log file
-		unlink('xscore.log');
 		
 		return $out;
 	}

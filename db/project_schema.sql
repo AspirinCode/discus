@@ -161,8 +161,7 @@ CREATE TABLE {project_prefix}docking_molecules (
   `obmol` blob NOT NULL,
   `sdf` blob NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`),
-  UNIQUE KEY `inchikey` (`inchikey`)
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 CREATE TABLE {project_prefix}docking_molecules_properties (

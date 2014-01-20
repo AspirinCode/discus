@@ -94,9 +94,13 @@ class plugins extends base {
 				# setup converters
 				$OBConversion = new OBConversion;
 				
+				# get limits for current batch
+				$batch = (int) $_POST['batch'];
+				$batch_size = (int) $this -> plugin -> batch_size;
+				
 				# get ligands
 				$OBConversion->SetInAndOutFormats("mol2", $plugin_class_name::$input['ligands']);
-				$query = 'SELECT conf.id, conf.mol_id, UNCOMPRESS(conf.mol2) AS mol2 FROM '.$this -> project.'docking_conformations AS conf WHERE mol2 IS NOT NULL AND conf.target_id = '.$target_id.(!empty($ligand_subset) ? ' AND conf.ligand_subset = '.$ligand_subset : '').(empty($plugin_class_name::$result['conf']) ? ' GROUP BY conf.mol_id' : '').';';
+				$query = 'SELECT conf.id, conf.mol_id, UNCOMPRESS(conf.mol2) AS mol2 FROM '.$this -> project.'docking_conformations AS conf WHERE mol2 IS NOT NULL AND conf.target_id = '.$target_id.(!empty($ligand_subset) ? ' AND conf.ligand_subset = '.$ligand_subset : '').(empty($plugin_class_name::$result['conf']) ? ' GROUP BY conf.mol_id' : '').($batch_size > 0 && !empty($batch) ? ' LIMIT '.(($batch-1)*$batch_size).','.($batch*$batch_size) : '').';';
 				#echo $query.'</br>';
 				$this -> Database -> query($query);
 				while($row = $this -> Database -> fetch_assoc()) {
@@ -155,87 +159,114 @@ class plugins extends base {
 				}
 			}
 			
-			# compute plugin
-			$results = $this -> plugin -> compute($ligands, $receptor);
+			if(!empty($ligands)) {
+				# compute plugin
+				$results = $this -> plugin -> compute($ligands, $receptor);
 			
-			# upload plugin results to DB
-			if(!empty($results)) {
-				# begin transaction
-				$query = 'BEGIN;';
-				$this -> Database -> query($query);
+				# upload plugin results to DB
+				if(!empty($results)) {
+					# begin transaction
+					$query = 'BEGIN;';
+					$this -> Database -> query($query);
 				
-				# iterate through results
-				$conf_sql = array();
-				$mol = array();
-				foreach($results as $key => $values) {
-					$tmp = explode('|', $key);
-					$conf_id = $tmp[0];
-					$mol_id = $tmp[1];
+					# iterate through results
+					$conf_sql = array();
+					$mol = array();
+					foreach($results as $key => $values) {
+						$tmp = explode('|', $key);
+						$conf_id = $tmp[0];
+						$mol_id = $tmp[1];
 					
-					$out = array();
-					$out[] = '"'.$conf_id.'"';
-					foreach($plugin_class_name::$result['conf'] as $f) {
-						$out[] = '"'.$values[$f['field_name']].'"';
-					}
-					$conf_sql[] = '('.implode(',', $out).')';
-					# extract molecular
-					foreach($plugin_class_name::$result['mol'] as $f) {
-						$mol[$mol_id][$f['field_name']] = $values[$f['field_name']];
-					}
-				}
-				
-				# get conf fileds list
-				if(!empty($plugin_class_name::$result['conf'])) {
-					$fields = array();
-					$update_fields = array();
-					$fields[] = '`id`';
-					foreach($plugin_class_name::$result['conf'] as $f) {
-						$fields[] = '`'.$f['field_name'].'`';
-						$update_fields[] = '`'.$f['field_name'].'` = VALUES(`'.$f['field_name'].'`)';
+						$out = array();
+						$out[] = '"'.$conf_id.'"';
+						foreach($plugin_class_name::$result['conf'] as $f) {
+							$out[] = '"'.$values[$f['field_name']].'"';
+						}
+						$conf_sql[] = '('.implode(',', $out).')';
+						# extract molecular
+						foreach($plugin_class_name::$result['mol'] as $f) {
+							$mol[$mol_id][$f['field_name']] = $values[$f['field_name']];
+						}
 					}
 				
-					# upload conformational
-					$query = 'INSERT INTO '.$this -> project.'docking_conformations_properties ('.implode(',',  $fields).') VALUES '.implode(',',  $conf_sql).' ON DUPLICATE KEY UPDATE '.implode(',',  $update_fields).';';
-					#echo $query.'</br>';
+					# get conf fileds list
+					if(!empty($plugin_class_name::$result['conf'])) {
+						$fields = array();
+						$update_fields = array();
+						$fields[] = '`id`';
+						foreach($plugin_class_name::$result['conf'] as $f) {
+							$fields[] = '`'.$f['field_name'].'`';
+							$update_fields[] = '`'.$f['field_name'].'` = VALUES(`'.$f['field_name'].'`)';
+						}
+				
+						# upload conformational
+						$query = 'INSERT INTO '.$this -> project.'docking_conformations_properties ('.implode(',',  $fields).') VALUES '.implode(',',  $conf_sql).' ON DUPLICATE KEY UPDATE '.implode(',',  $update_fields).';';
+						#echo $query.'</br>';
+						$this -> Database -> query($query);
+					}
+				
+					# iterate through mol
+					$mol_sql = array();
+					foreach($mol as $mol_id => $values) {
+						$out = array();
+						$out[] = '"'.$mol_id.'"';
+						foreach($plugin_class_name::$result['mol'] as $f) {
+							$out[] = '"'.$values[$f['field_name']].'"';
+						}
+						$mol_sql[] = '('.implode(',', $out).')';
+					}
+				
+					# get mol fileds list
+					if(!empty($plugin_class_name::$result['mol'])) {
+						$fields = array();
+						$update_fields = array();
+						$fields[] = '`id`';
+						foreach($plugin_class_name::$result['mol'] as $f) {
+							$fields[] = '`'.$f['field_name'].'`';
+							$update_fields[] = '`'.$f['field_name'].'` = VALUES(`'.$f['field_name'].'`)';
+						}
+				
+						# upload molecular
+						$query = 'INSERT INTO '.$this -> project.'docking_molecules_properties ('.implode(',',  $fields).') VALUES '.implode(',',  $mol_sql).' ON DUPLICATE KEY UPDATE '.implode(',',  $update_fields).';';
+						#echo $query.'</br>';
+						$this -> Database -> query($query);
+					}
+				
+					$query = 'COMMIT;';
 					$this -> Database -> query($query);
-				}
-				
-				# iterate through mol
-				$mol_sql = array();
-				foreach($mol as $mol_id => $values) {
-					$out = array();
-					$out[] = '"'.$mol_id.'"';
-					foreach($plugin_class_name::$result['mol'] as $f) {
-						$out[] = '"'.$values[$f['field_name']].'"';
+					if(!empty($batch_size)) {
+						echo '<form id="plugin_form" method="POST" action="'.$this -> get_link().'">';
+						echo '<div class="alert">Completed '.($batch*$batch_size).'</div>';
+						echo '<input type="hidden" name="batch" value="'.($batch+1).'">';
+						echo '<input type="hidden" name="timeout" value="1000">'; #timeout for autoreload [in ms]
+						echo '<input type="hidden" name="confirm" value="1">';
+						if(!IS_AJAX) {
+							echo '<button class="btn btn-warning">Continue next step</button>';
+							?>
+							<script>
+							$(function() {
+								setTimeout(function() {
+									$('#plugin_form').submit()
+								}, $('#plugin_form > input[name="timeout"]').val());
+							});
+							</script>
+							<?php
+						}
+						echo '</form>';
 					}
-					$mol_sql[] = '('.implode(',', $out).')';
-				}
-				
-				# get mol fileds list
-				if(!empty($plugin_class_name::$result['mol'])) {
-					$fields = array();
-					$update_fields = array();
-					$fields[] = '`id`';
-					foreach($plugin_class_name::$result['mol'] as $f) {
-						$fields[] = '`'.$f['field_name'].'`';
-						$update_fields[] = '`'.$f['field_name'].'` = VALUES(`'.$f['field_name'].'`)';
+					else {
+						echo '<div class="alert alert-success">Plugin execution completed successfully</div>';
 					}
-				
-					# upload molecular
-					$query = 'INSERT INTO '.$this -> project.'docking_molecules_properties ('.implode(',',  $fields).') VALUES '.implode(',',  $mol_sql).' ON DUPLICATE KEY UPDATE '.implode(',',  $update_fields).';';
-					#echo $query.'</br>';
-					$this -> Database -> query($query);
 				}
-				
-				$query = 'COMMIT;';
-				$this -> Database -> query($query);
-				
+			}
+			else {
 				echo '<div class="alert alert-success">Plugin execution completed successfully</div>';
 			}
 		}
 		else {
 			echo '<form method="POST" action="'.$this -> get_link().'">';
 			echo '<div class="alert">Confirm plugin execution</div>';
+			echo '<input type="hidden" name="batch" value="1">';
 			echo '<input type="hidden" name="confirm" value="1">';
 			if(!IS_AJAX) {
 				echo '<button class="btn btn-warning">Confirm</button>';

@@ -69,7 +69,9 @@ if(file_exists('config.php')) {
 		# for ajax
 		if(IS_AJAX) {
 			$view = 'view_'.$mode;
-			$mod -> $view();
+			if(method_exists($mod,$view)) {
+				$mod -> $view();
+			}
 			exit;
 		}
 	}
@@ -147,6 +149,7 @@ else {
     <h3>Modal header</h3>
   </div>
   <div class="modal-body">
+  <div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-large btn-success">Submit</button>
@@ -163,15 +166,20 @@ $(function() {
 					success: function() {
 						if($('#modal > .modal-body > form').length > 0) {
 							button.removeClass('disabled').addClass('btn-success').html('Submit');
+							// check for autoreload
+							if($('#modal > .modal-body > form > input[name="timeout"]').val() > 0) {
+								setTimeout(function() {
+									$('#modal > .modal-footer > button').trigger( "click" );
+								}, $('#modal > .modal-body > form > input[name="timeout"]').val())
+							}
 						}
 						else {
-							button.hide()
+							button.removeClass('disabled').addClass('btn-success').html('Close');
 						}
 					}
 				});
 				// add progress bar
 				$('#modal > .modal-body').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div>');
-			
 			}
 			$(this).addClass('disabled').removeClass('btn-success').html('loading...');
 		}
@@ -180,14 +188,35 @@ $(function() {
 		}
 	});
 	
-	//modal header modification
+	$('#modal').on('shown', function () {
+		if($('#modal > .modal-body > form').length == 0) {
+			$('#modal > .modal-footer > button').html('Close');
+		}
+	})
+	
+	// modal header modification
 	$('a[data-toggle="modal"]').click(function() {
-		$('#modal > .modal-header > h3').text($(this).text());
+		if($(this).text() != '') {
+			$('#modal > .modal-header > h3').text($(this).text());
+		}
 		$('#modal > .modal-footer > button').addClass('btn-success').removeClass('disabled').html('Submit').show();
 	});
+	
+	// disable modal toggles inside modal
+	$('#modal').on('shown', function () {
+		$("a[data-target=#modal]", $('#modal > .modal-body')).click(function(e) {
+			e.preventDefault();
+			$("#modal > .modal-body").load($(this).attr("href"), function () {
+				if($('#modal > .modal-body > form').length > 0) {
+					$('#modal > .modal-footer > button').addClass('btn-success').removeClass('disabled').html('Submit').show();
+				}
+			});	
+		});
+	});
+	
 	// destroy modal when hidden
 	$('body').on('hidden', '.modal', function () {
-	  $(this).removeData('modal');
+		$(this).removeData('modal');
 	});
 });
 </script>

@@ -83,6 +83,8 @@ class User {
 			$this -> password_hash	= null;
 			$this -> id		= null;
 		}
+		// write to session to release the lock
+		session_write_close();
 	}
 	
 	public function id() {

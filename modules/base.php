@@ -38,6 +38,20 @@ class base {
 		$this -> User = $User;
 		$this -> OBConversion = new OBConversion;
 		
+		# pagination
+		$this -> page = $_GET['page'] ? $_GET['page'] : ($_POST['page'] ? $_POST['page'] : 1);
+		
+		if((int)$_GET['pp'] > $this -> per_page) {
+			$this -> per_page = (int) $_GET['pp'];
+			if($_COOKIE['pp'] != $_GET['pp']) {
+				setcookie('pp', $this -> per_page, time() + 3600 * 24 * 30);
+			}
+		}
+		elseif(!empty($_COOKIE['pp'])) {
+			$this -> per_page = $_COOKIE['pp'];
+		}	
+		$this -> offset = ($this -> page - 1) * $this -> per_page;
+		
 		$this -> data_structure();
 		
 		# check acl
@@ -58,13 +72,6 @@ class base {
 		$project = (int) $this -> Database -> secure_mysql($_GET['project'] ? $_GET['project'] : $_POST['project']);
 		$this -> project = $CONFIG['db_name'].'.project_'.$project.'_';
 		$this -> project_id = $project;
-		
-		# pagination
-		$this -> page = $_GET['page'] ? $_GET['page'] : ($_POST['page'] ? $_POST['page'] : 1);
-		if((int)$_GET['pp'] > $this -> per_page) {
-			$this -> per_page = (int)$_GET['pp'];
-		}	
-		$this -> offset = ($this -> page - 1) * $this -> per_page;
 	}
 	
 	# get permanent link
@@ -380,10 +387,12 @@ class base {
 		$toolbar = '';
 		
 		#select project
-		$query = 'SELECT project.id, project.name, project.user_id, owner.login AS owner_name FROM '.$CONFIG['db_prefix'].'.docking_project AS project LEFT JOIN '.$CONFIG['db_prefix'].'.docking_users AS owner ON project.user_id = owner.id '.($this -> User -> gid() != 1 ? ' WHERE project.id IN ('.implode(',', $this -> User -> acl()).')' : '');
-		$this -> Database -> query($query);
-		while($row = $this -> Database -> fetch_assoc()) {
-			$projects[$row['id']] = $row;
+		if($this -> User -> gid() == 1 || $this -> User -> gid() != 1 && count($this -> User -> acl()) > 0) {
+			$query = 'SELECT project.id, project.name, project.user_id, owner.login AS owner_name FROM '.$CONFIG['db_prefix'].'.docking_project AS project LEFT JOIN '.$CONFIG['db_prefix'].'.docking_users AS owner ON project.user_id = owner.id '.($this -> User -> gid() != 1 ? ' WHERE project.id IN ('.implode(',', $this -> User -> acl()).')' : '');
+			$this -> Database -> query($query);
+			while($row = $this -> Database -> fetch_assoc()) {
+				$projects[$row['id']] = $row;
+			}
 		}
 		
 		$toolbar .= '<div class="btn-group">';
@@ -394,8 +403,8 @@ class base {
 				$selected = $row['id'] == $_GET['project'] ? ' selected' : '';
 				$toolbar .= '<li class="'.($pid == $_GET['project'] ? 'active' : '').'"><a href="./index.php?project='.$pid.'">'.($p['user_id'] != $this -> User -> id() ? '<span class="label">'.$p['owner_name'].'</span> ' : ' ').$p['name'].'</a></li>';
 			}
+			$toolbar .= '<li class="divider"></li>';
 		}
-		$toolbar .= '<li class="divider"></li>';
 		
 		$toolbar .= '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'new_project', 'ajax' => 1), array(), array('project', 'module')).'">New Project</a></li>';
 		
@@ -419,6 +428,9 @@ class base {
 			$toolbar .= '<ul class="dropdown-menu">';
 		
 			$toolbar .= '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'user_management', 'mode' => 'user_add', 'ajax' => 1), array(), array('project')).'">Add user</a></li>';
+			$toolbar .= '<li><a data-toggle="modal" data-target="#modal" href="'.$this -> get_link(array('module' => 'user_management', 'mode' => 'user_edit', 'ajax' => 1), array(), array('project')).'">Manage users</a></li>';
+			$toolbar .= '<li class="divider"></li>';
+			$toolbar .= '<li><a data-toggle="modal" data-target="#modal" href="./update.php">Update Discus from GitHub</a></li>';
 #			# project updates
 #			$query = 'SELECT id FROM '.$CONFIG['db_name'].'.docking_project_dbupdater WHERE `time` > (SELECT db_timestamp FROM '.$CONFIG['db_name'].'.docking_project WHERE id = '.$this -> project_id.' LIMIT 1) ORDER BY time ASC';
 #			$this -> Database -> query($query);

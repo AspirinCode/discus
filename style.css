@@ -19,6 +19,7 @@ a:hover {
 }
 
 img {
+	max-width: none;
 	vertical-align: middle;
 	padding: 3px;
 	border: 0px;

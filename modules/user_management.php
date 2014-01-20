@@ -24,6 +24,7 @@ along with DiSCuS.  If not, see <http://www.gnu.org/licenses/>.
 class user_management extends base {
 	private $pass_changed = 0;
 	private $status = 0;
+	
 	public function change_password() {
 		global $CONFIG;
 		
@@ -64,6 +65,23 @@ class user_management extends base {
 			}
 		}
 	}
+	
+	
+	public function user_edit() {
+		if($this -> User -> gid() == 1) {
+			
+		}
+	}
+	
+	public function user_delete() {
+		if($this -> User -> gid() == 1 && !empty($_POST['confirm']) && !empty($_GET['uid'])) {
+			$query = 'DELETE FROM '.$CONFIG['db_name'].'docking_users WHERE id = "'.(int) $_GET['uid'].'";';
+			if($this -> Database -> query($query)) {
+				$this -> status = 'deleted';
+			}
+		}
+	}
+	
 	#####
 	
 	public function view_change_password() {
@@ -170,6 +188,123 @@ class user_management extends base {
 			});
 			</script>
 			<?php
+		}
+	}
+	
+	public function view_user_edit() {
+		global $CONFIG;
+		# allow only admin
+		if($this -> User -> gid() != 1) {
+			$this -> view_forbidden();
+			exit;
+		}
+		
+		if($this -> User -> gid() == 1) {
+			echo '<table class="table table-striped table-hover">';
+			# header
+			echo '<thead>';
+			echo '<tr>';
+			echo '<td><b>User</b></td>';
+			echo '<td><b>Full Name</b></td>';
+			echo '<td><b>Group</b></td>';
+			echo '<td><b>Own Projects</b></td>';
+			echo '<td><b>Shared Projects</b></td>';
+			echo '<td><b>Edit</b></td>';
+			echo '<td><b>Delete</b></td>';
+			echo '</tr>';
+			echo '</thead>';
+			
+			# get projects 
+			$projects = array();
+			$query = 'SELECT p.id, p.user_id, p.name, GROUP_CONCAT(perm.uid) AS users  FROM '.$CONFIG['db_prefix'].'.docking_project AS p LEFT JOIN '.$CONFIG['db_prefix'].'.docking_project_permitions AS perm ON p.id=perm.pid GROUP BY p.id';
+			$this -> Database -> query($query);
+			while($row = $this -> Database -> fetch_assoc()) {
+				$p = $row;
+				$p['users'] = explode(',', $row['users']);
+				$projects[] = $p;
+			}
+			
+			# draw table with users
+			$query = 'SELECT * FROM '.$CONFIG['db_prefix'].'.docking_users';
+			$this -> Database -> query($query);
+			while($row = $this -> Database -> fetch_assoc()) {
+				echo '<tr>';
+				echo '<td>'.$row['login'].'</td>';
+				echo '<td>'.$row['fullname'].'</td>';
+				if($row['gid'] == 1) {
+					echo '<td><span class="label label-important">Admin</span></td>';
+				}
+				else {
+					echo '<td><span class="label label-info">User</span></td>';
+				}
+				
+				echo '<td>';
+				foreach($projects as $p) {
+					if($row['id'] == $p['user_id']) {
+						echo '<span class="label">'.$p['name'].'</span> ';
+					}
+				}
+				echo '</td>';
+				
+				if($row['gid'] == 1) {
+					echo '<td><span class="label label-success">All</span></td>';
+				}
+				else {
+					echo '<td>';
+					foreach($projects as $p) {
+						if($row['id'] != $p['user_id'] && in_array($row['id'], $p['users'])) {
+							echo '<span class="label">'.$p['name'].'</span> ';
+						}
+					}
+					echo '</td>';
+				}
+				
+				echo '<td><a class="btn btn-warning btn-mini"><i class="icon-edit icon-white"></i></a></td>';
+				echo '<td><a href="'.$this -> get_link(array('mode' => 'user_delete', 'uid' => $row['id'])).'" data-target="#modal" class="query_delete_target btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
+				echo '</tr>';
+			}
+			
+			echo '</table>';
+			?>
+			<script>
+			
+			</script>
+			<?php
+		}
+	}
+	
+	public function view_user_delete() {
+		global $CONFIG;
+		
+		# allow only admin
+		if($this -> User -> gid() != 1) {
+			$this -> view_forbidden();
+			exit;
+		}
+		
+		if($this -> User -> gid() == 1) {
+			if(!empty($_POST['confirm']) && $this -> status == 'deleted') {
+				echo '<div class="alert alert-success">';
+				echo 'User successfuly deleted';
+				echo '</div>';
+			}
+			else {
+				# get user name
+				$query = 'SELECT id, login, fullname FROM '.$CONFIG['db_prefix'].'.docking_users WHERE id = '.(int) $_GET['uid'].';';
+				$this -> Database -> query($query);
+				$row = $this -> Database -> fetch_assoc();
+				echo '<form method="POST" action="'.$this -> get_link().'">';
+				echo '<div class="alert alert-error">';
+				echo '<b>LAST WARNING!</b> Do you want to delete user <b>'.$row['login'].(!empty($row['fullname']) ? ' ['.$row['fullname'].']' : '').'</b>? This action cannot be reverted!</br>';
+				echo '<input type="hidden" name="confirm" value="1">';
+				if(!IS_AJAX) {
+					echo '<button class="btn btn-danger">Confirm</button>';
+				}
+				echo '</div>';
+				echo '</form>';
+
+			}
+			
 		}
 	}
 }

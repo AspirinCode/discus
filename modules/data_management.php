@@ -99,18 +99,48 @@ class data_management extends base {
 		}
 	}
 	
-	private function parse_file($file, $format = 'mol2') {
+	private function parse_file($file, $format = 'mol2', $batch = 1, $batch_size = 1000) {
+		$mols = array();
 #		if($format == 'mol2') {
 #			$format = 'copy';
-#		}		
+#		}
+		$OBLog = openbabel::obErrorLog_get();
+		$OBLog -> StopLogging();
+
 		$OBMol = new OBMol;
 		$OBConversion = new OBConversion;
+		$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, ($batch-1)*$batch_size+1);
+		$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, $batch*$batch_size);
 		$OBConversion -> SetInFormat($format);
-		$OBConversion -> SetOutFormat($format);
+		
 		$notatend = $OBConversion -> ReadFile($OBMol, $file);
 		while($notatend) {
-			$mols[] = $OBMol;
-			$OBMol = new OBMol;
+			#$mols[] = $OBMol;
+			$OBConversion -> SetOutFormat('mol2');
+			$string_mol2 = $OBConversion -> WriteString($OBMol);
+			
+			$size = $OBMol -> DataSize();
+			if($size > 0) {
+				$s = array();
+				$data = $OBMol -> GetData();
+				
+				for($i = 0; $i<$size;$i++) {
+					$v = $data -> get($i);
+					# get only valid data
+					if(($v -> GetDataType() == openbabel::PairData || $v -> GetDataType() == openbabel::CommentData)
+					&& $v -> GetAttribute() != 'MOL Chiral Flag'
+					&& $v -> GetAttribute() != 'OpenBabel Symmetry Classes') {
+						$s[$v -> GetAttribute()] = $v -> GetValue();
+					}
+				}
+			}
+			
+			$mols[] = array('name' => trim($OBMol -> GetTitle()), 'mol2' => pack('L', strlen($string_mol2)).gzcompress($string_mol2), 'scores' => $s);
+			
+			
+#			unset($OBMol);
+#			$OBMol = new OBMol;
+			$OBMol -> Clear();
 			$notatend = $OBConversion -> Read($OBMol);
 		}
 		
@@ -128,23 +158,8 @@ class data_management extends base {
 		return $this -> OBConversion -> WriteString($mol);
 	}
 	
-#	private function unique_mols($mols) {
-#		$unique = array();
-#		foreach($mols as $mol) {
-#			$key = $this -> get_inchikey($mol, '/nostereo');
-#			$key = $mol -> GetTitle();
-#			$unique[$key][] = $mol;
-#			if(!array_key_exists($key, $unique)) {
-#				$unique[$key] = array($mol);
-#			}
-#			else {
-#				$unique[$key][] = $mol;
-#			}
-#		}		
-#		return !empty($unique) ? $unique : null;
-#	}
-	
-	private function get_docking_scores($file, $just_first = false) {
+	private function get_docking_scores($file, $just_first = false, $batch = 1, $batch_size = 1000) {
+		$output = array();
 		if($_POST['file_format'] == 'mol2') {
 			$pfile = gzopen($file, 'rb');
 			$output = array();
@@ -162,39 +177,37 @@ class data_management extends base {
 				}
 			}
 		}
-		elseif($_POST['file_format'] == 'sdf') {
+		elseif($_POST['file_format'] == 'sdf' && $just_first) {
 			$OBMol = new OBMol;
 			$OBConversion = new OBConversion;
+			$OBConversion -> AddOption('f', $OBConversion::GENOPTIONS, 1);
+			$OBConversion -> AddOption('l', $OBConversion::GENOPTIONS, 1);
 			$OBConversion -> SetInFormat('sdf');
 			$OBConversion -> SetOptions('P', $OBConversion::OUTOPTIONS);
-			$notatend = $OBConversion -> ReadFile($OBMol, $file);
-			while($notatend) {
-				#while(
-				$size = $OBMol -> DataSize();
-				$data = $OBMol -> GetData();
-				
-				for($i = 0; $i<$size;$i++) {
-					$v = $data -> get($i);
-					# get only valid data
-					if(($v -> GetDataType() == openbabel::PairData || $v -> GetDataType() == openbabel::CommentData)
-					&& $v -> GetAttribute() != 'MOL Chiral Flag'
-					&& $v -> GetAttribute() != 'OpenBabel Symmetry Classes') {
-						$o[$v -> GetAttribute()] = $v -> GetValue();
-					}
+			$OBConversion -> ReadFile($OBMol, $file);
+			
+			$size = $OBMol -> DataSize();
+			$data = $OBMol -> GetData();
+			
+			for($i = 0; $i<$size;$i++) {
+				$v = $data -> get($i);
+				# get only valid data
+				if(($v -> GetDataType() == openbabel::PairData || $v -> GetDataType() == openbabel::CommentData)
+				&& $v -> GetAttribute() != 'MOL Chiral Flag'
+				&& $v -> GetAttribute() != 'OpenBabel Symmetry Classes') {
+					$o[$v -> GetAttribute()] = $v -> GetValue();
 				}
-				$output[] = $o;
-
-				if($just_first) {
-					return $output;
-				}
-				$OBMol = new OBMol;
-				$notatend = $OBConversion -> Read($OBMol);
 			}
+			$output[] = $o;
 		}
 		return $output;
 	}
 	
 	public function import_form() {
+		$this -> batch = !empty($_POST['batch']) ? (int) $_POST['batch'] : 1;
+		$this -> batch_size = 100000;
+		
+		
 		# ligand file
 		if($_FILES["file"]["size"] > 0) {
 			#move file
@@ -215,23 +228,30 @@ class data_management extends base {
 			$this -> target_file = $_POST['target_file_name'];
 		}
 		
+		$this -> unique_mols = array();
+		
 		if(is_file($this -> upload_dir.$this -> upload_file) && filesize($this -> upload_dir.$this -> upload_file) > 0) {
 			# get first line to check if mapping is assigned
 			$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, true);
 			if(count($dock[0]) - count($_POST['mapping']) < 1) {
 				# get all info
-				$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file);
-				foreach($this -> parse_file($this -> upload_dir.$this -> upload_file, $format = $_POST['file_format']) as $key => $mol) {
-					$this -> mols[] = array($mol, $dock[$key]); 
+				$dock = $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, false, $this -> batch);
+				foreach($this -> parse_file($this -> upload_dir.$this -> upload_file, $format = $_POST['file_format'], $this -> batch, $this -> batch_size) as $key => $mol) {
+					if(!empty($dock[$key])) {
+						$mol['scores'] = array_merge($mol['scores'], $dock[$key]);
+					}
+					$this -> mols[] = $mol; 
 					#$unique_key = $this -> get_inchikey($mol, '/nostereo');
 					# get oryginal molecules name
 					if($_POST['file_format'] == 'sdf') {
 						# GOLD uses | as a separator in names
-						$name = explode('|', $mol -> GetTitle());					
+						#$name = explode('|', $mol -> GetTitle());
+						$name = explode('|', $mol['name']);					
 						$unique_key = $name[0];
 					}
 					else {
-						$unique_key = $mol -> GetTitle();
+						#$unique_key = $mol -> GetTitle();
+						$unique_key = $mol['name'];
 					}
 					$this -> unique_mols[$unique_key][] = $key;
 				}
@@ -278,11 +298,9 @@ class data_management extends base {
 					if($this -> Database -> query($query)) {
 						$query = 'COMMIT;';
 						$this -> Database -> query($query);
-				
-						if(!IS_AJAX) {
-							echo json_encode(array("field_name"=>$field_name,"field_label"=>$field_label));
-							exit;	
-						}
+						
+						echo json_encode(array("field_name"=>$field_name,"field_label"=>$field_label));
+						exit;	
 					}
 					else {
 						$query = 'ROLLBACK;';
@@ -377,6 +395,28 @@ class data_management extends base {
 		}
 	}
 	
+	public function subset_edit() {
+	
+	}
+	
+	public function subset_delete() {
+		if($this -> User -> gid() == 1 && !empty($_POST['confirm']) && !empty($_GET['sid'])) {
+			$query = 'DELETE FROM '.$this -> project.'docking_ligand_subset WHERE id = "'.(int) $_GET['sid'].'";';
+			if($this -> Database -> query($query)) {
+				$this -> status = 'deleted';
+			}
+		}
+	}
+	
+	public function user_subset_delete() {
+		if($this -> User -> gid() == 1 && !empty($_POST['confirm']) && !empty($_GET['sid'])) {
+			$query = 'DELETE FROM '.$this -> project.'docking_user_subset WHERE id = "'.(int) $_GET['sid'].'";';
+			if($this -> Database -> query($query)) {
+				$this -> status = 'deleted';
+			}
+		}
+	}
+	
 	#####
 	
 	public function view_new_project() {
@@ -435,11 +475,11 @@ class data_management extends base {
 		$this -> get_project_db();
 		$project = (int) $this -> Database -> secure_mysql($_GET['project'] ? $_GET['project'] : $_POST['project']);
 		
+
+		$dock = !empty($this -> upload_file) ? $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, true, $this -> batch, $this -> batch_size) : array();
 		
-		$dock = !empty($this -> upload_file) ? $this -> get_docking_scores($this -> upload_dir.$this -> upload_file, true) : array();
 		
-		
-		if(empty($this -> mols) || count($dock[0]) - count($_POST['mapping']) > 0) {
+		if(empty($this -> mols) && empty($_POST['batch']) || count($dock[0]) - count($_POST['mapping']) > 0) {
 			echo '<form method="POST" enctype="multipart/form-data" action="'.$this -> get_link().'">';
 			
 			#show targets
@@ -534,7 +574,7 @@ class data_management extends base {
 					echo '<option></option>';
 	
 					foreach ($this -> data_structure as $field) {
-						if($field[2] == 0 || $field[2] == 2) {
+						if($field[2] != 1 && $field[0] != 'name') {
 							echo '<option value='.$field[0].'>'.$field[0].'</option>';
 						}
 					}
@@ -585,7 +625,6 @@ class data_management extends base {
 									$('select[name^=mapping]', parent_td).val(data.field_name);
 								}
 								else {
-									alert("error");
 									$('select[name^=mapping]', parent_td).val('');
 								}
 							},
@@ -679,69 +718,88 @@ class data_management extends base {
 			$sign = 	array("'");
 			$escape = 	array("\'"); 
 			
-			# insert import file into database, for easier managment, and posible re-processing
-			$query = 'INSERT INTO '.$this -> project.'docking_conformations_import (`subset`, `time`, `filename`, `file`) VALUES ('.$ligand_subset.', '.time().', "'.$this -> upload_file.'", COMPRESS("'.$this -> Database -> secure_mysql(file_get_contents($this -> upload_dir.$this -> upload_file)).'"))';
-			$this -> Database -> query($query);
-			# get new or current ligand_subset's id
-			$import_id = $this -> Database -> insert_id();
+			$import_id = (int) $_POST['import_id'];
+			if(empty($import_id) && filesize($this -> upload_dir.$this -> upload_file) < 4294967295 ) {
+				# insert import file into database, for easier managment, and posible re-processing
+				$query = 'INSERT INTO '.$this -> project.'docking_conformations_import (`subset`, `time`, `filename`, `file`) VALUES ('.$ligand_subset.', '.time().', "'.$this -> upload_file.'", COMPRESS(LOAD_FILE("'.realpath($this -> upload_dir.$this -> upload_file).'")))';
+				$this -> Database -> query($query);
+				# get new or current ligand_subset's id
+				$import_id = $this -> Database -> insert_id();
+				#free some memory
+				unset($query);
+			}
 			 
 			$mapping = !empty($_POST['mapping']) ? array_filter($_POST['mapping']) : array();
 			
-			$mol_ids = array();					
+			$mol_ids = array();
+								
 			foreach($this -> unique_mols as $mol_keys) { 
-				if($_POST['file_format'] == 'sdf') {
-					# GOLD uses | as a separator in names
-					$name = explode('|', $this -> mols[$mol_keys[0]][0] -> GetTitle());					
-					$mol_name = $name[0];
-				}
-				else {
-					$mol_name = $this -> mols[$mol_keys[0]][0] -> GetTitle();
-				}
-				
-				$smiles = $this -> unify_smiles($this -> mols[$mol_keys[0]][0]);
-				$mol_inchi = $this -> get_inchikey($smiles, '/nochg/nostereo');
-				
-				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_molecules (`name`, `smiles`, `inchikey`, `fp2`, `obmol`, `mol2`) VALUES ("'.$mol_name.'", "'.$smiles.'", "'.$mol_inchi.'", FINGERPRINT2(SMILES_TO_MOLECULE("'.$smiles.'")), MOLECULE_TO_SERIALIZEDOBMOL(SMILES_TO_MOLECULE("'.$smiles.'")), COMPRESS(\''.$this -> Database -> secure_mysql($this -> get_mol2($this -> mols[$mol_keys[0]][0])).'\'));';
+				$mol_name = $this -> mols[$mol_keys[0]]['name'];
+#				$smiles = $this -> mols[$mol_keys[0]]['smiles'];				
+#				$mol_inchi = $this -> mols[$mol_keys[0]]['inchi'];
+				$mol2 = $this -> mols[$mol_keys[0]]['mol2'];
+
+				$query = 'SELECT id FROM '.$this -> project.'docking_molecules WHERE name = "'.$mol_name.'" LIMIT 1;';
 				$this -> Database -> query($query);
-				# get new molecule's ID, store it for future reference
-				$mol_id = $this -> Database -> insert_id();
+				$row = $this -> Database -> fetch_assoc();
+				$mol_id = $row['id'];
+				
 				if(empty($mol_id)) {
-					$query = 'SELECT id FROM '.$this -> project.'docking_molecules WHERE name = "'.$mol_name.'" LIMIT 1;';
+					$OBMol = new OBMol;
+					$OBConversion = new OBConversion;
+					$OBConversion -> SetInFormat('mol2');
+					$OBConversion -> ReadString($OBMol, gzuncompress(substr($mol2, 4)));
+					
+					$OBConversion -> SetOutFormat('inchikey');
+#					$OBConversion -> SetOptions('T"/nochg/nostereo"', $OBConversion::OUTOPTIONS);
+					$inchi = preg_split('/[\r\n\s]+/', trim($OBConversion -> WriteString($OBMol)))[0];
+					
+					$OBConversion -> SetOutFormat('smi');
+					$OBConversion -> AddOption("c");
+					$OBConversion -> AddOption("n");
+					$smiles = trim($OBConversion -> WriteString($OBMol));
+					
+					$query = 'INSERT IGNORE INTO '.$this -> project.'docking_molecules (`name`, `smiles`, `inchikey`, `fp2`, `obmol`, `mol2`) VALUES ("'.$mol_name.'", "'.$smiles.'", "'.$inchi.'", FINGERPRINT2(SMILES_TO_MOLECULE("'.$smiles.'")), MOLECULE_TO_SERIALIZEDOBMOL(SMILES_TO_MOLECULE("'.$smiles.'")), "'.$this -> Database -> secure_mysql($mol2).'");';
 					$this -> Database -> query($query);
-					$row = $this -> Database -> fetch_assoc();
-					$mol_id = $row['id'];
+					# get new molecule's ID, store it for future reference
+					$mol_id = $this -> Database -> insert_id();
+					
+					if(empty($mol_id)) {
+						echo '<li>PANIC!! - '.$mol_name.' - '.$mol_inchi.'</br>';
+						$panic[] = $mol_name;
+					}
+					unset($OBConversion);
+					unset($OBMol);
 				}
-#				else {				
-#					#get molecules properties
-#					$query = 'INSERT INTO '.$this -> project.'docking_molecules_properties (`id`, `smiles`, `mol2`) VALUES ("'.$mol_id.'", "'.$smiles.'", COMPRESS(\''.$this -> Database -> secure_mysql($this -> get_mol2($this -> mols[$mol_keys[0]][0])).'\'));';
-#					$this -> Database -> query($query);
-#				}
 				
 				if(!empty($mol_id)) {
 					$mol_ids[] = $mol_id;
 					# upload conformations
 					foreach($mol_keys as $k => $key) {
-						if(!empty($this -> mols[$key][1]["name"])) {
-							$conf_name = $this -> mols[$key][1]["name"].'_'.($k+1);
+						if(!empty($this -> mols[$key]['scores']["name"])) {
+							$conf_name = $this -> mols[$key]['scores']["name"].'_'.($k+1);
 						}
 						else {
-							$conf_name = $this -> mols[$key][0] -> GetTitle().'_'.($k+1);
+							$conf_name = $this -> mols[$key]['name'].'_'.($k+1);
 						}
-						$query = 'INSERT INTO '.$this -> project.'docking_conformations (`mol_id`, `target_id`, `ligand_subset`, `name`, `mol2`, `import_id`) VALUES ("'.$mol_id.'", "'.$target_id.'", "'.$ligand_subset.'", \''.str_replace($sign, $escape, $conf_name).'\', COMPRESS(\''. $this -> Database -> secure_mysql($this -> get_mol2($this -> mols[$key][0])).'\'), '.(!empty($import_id) ? $import_id : 'NULL').');';
+						
+						$mol2 = $this -> mols[$key]['mol2'];
+	
+						$query = 'INSERT INTO '.$this -> project.'docking_conformations (`mol_id`, `target_id`, `ligand_subset`, `name`, `mol2`, `import_id`) VALUES ("'.$mol_id.'", "'.$target_id.'", "'.$ligand_subset.'", \''.str_replace($sign, $escape, $conf_name).'\', \''. $this -> Database -> secure_mysql($mol2).'\', '.(!empty($import_id) ? $import_id : 'NULL').');';
 						$this -> Database -> query($query);
 						$conf_id = $this -> Database -> insert_id();
 					
 						# import conformational properties from docking results
-						if(!empty($this -> mols[$key][1]) && !empty($mapping) && !empty($conf_id)) {
+						if(!empty($this -> mols[$key]['scores']) && !empty($mapping) && !empty($conf_id)) {
 							$conf = array();
 							foreach($mapping as $m => $v) {
-								$conf[$v] = $this -> mols[$key][1][$m];
+								$conf[$v] = $this -> mols[$key]['scores'][$m];
 							}
 							$query = 'INSERT INTO '.$this -> project.'docking_conformations_properties (`id`, `'.implode('`,`', array_keys($conf)).'`) VALUES ("'.$conf_id.'", "'.implode('","', array_values($conf)).'");';
 							$this -> Database -> query($query);
 						}
 					}
-					echo '<li>'.$mol_name.' - '.count($mol_keys).' conformations</li>';
+					#echo '<li>'.$mol_name.' - '.count($mol_keys).' conformations</li>';
 				}
 			}
 			#upload ligand_subset_members
@@ -750,22 +808,168 @@ class data_management extends base {
 				$ligand_subset_members[] = '('.$ligand_subset.','.$mid.')';
 			}
 			
-			$query = 'INSERT IGNORE INTO '.$this -> project.'docking_ligand_subset_members (`ligand_subset_id`, `mol_id`) VALUES '.implode(',', $ligand_subset_members);
-			$this -> Database -> query($query);
+			if(!empty($ligand_subset_members)) {
+				$query = 'INSERT IGNORE INTO '.$this -> project.'docking_ligand_subset_members (`ligand_subset_id`, `mol_id`) VALUES '.implode(',', $ligand_subset_members);
+				$this -> Database -> query($query);
 			
-			# commit transaction
-			$query = 'COMMIT;';
-			$this -> Database -> query($query);
-			
-			echo 'Uploded '.count($mol_ids).' molecules.';
-			
-			# remove files
-			if(is_file($this -> upload_dir.$this -> target_file)) {
-				unlink($this -> upload_dir.$this -> target_file);
+				# commit transaction
+				$query = 'COMMIT;';
+				$this -> Database -> query($query);
 			}
-			if(is_file($this -> upload_dir.$this -> upload_file)) {
-				unlink($this -> upload_dir.$this -> upload_file);
+			
+			
+			
+			if(count($this -> mols) < $this -> batch_size) {
+				echo '<div class="alert">Successfully imported '.(($this -> batch-1)*$this -> batch_size+count($this -> mols)).'</div>';
+				# remove files
+				if(is_file($this -> upload_dir.$this -> target_file)) {
+					unlink($this -> upload_dir.$this -> target_file);
+				}
+				if(is_file($this -> upload_dir.$this -> upload_file)) {
+					unlink($this -> upload_dir.$this -> upload_file);
+				}
 			}
+			else {
+				echo '<form id="import_form" method="POST" enctype="multipart/form-data" action="'.$this -> get_link().'">';
+				#inport_id
+				#batch
+				#echo 'Uploded '.count($mol_ids).' molecules. '.count($this -> unique_mols).' - '.count($panic).'</br>';
+				
+				echo '<div class="alert">Completed '.($this -> batch*$this -> batch_size).'</div>';
+				echo '<input type="hidden" name="batch" value="'.($this -> batch+1).'">';
+				echo '<input type="hidden" name="timeout" value="1000">'; #timeout for autoreload [in ms]
+				echo '<input type="hidden" name="import_id" value="'.$import_id.'">';
+				echo '<input type="hidden" name="file_name" value="'.$this -> upload_file.'">';
+				echo '<input type="hidden" name="file_format" value="'.$_POST['file_format'].'">';
+				echo '<input type="hidden" name="target_id" value="'.$target_id.'">';
+				echo '<input type="hidden" name="ligand_subset" value="'.$ligand_subset.'">';
+				#mapping
+				foreach($_POST['mapping'] as $key => $map) {
+					echo '<input type="hidden" name="mapping['.$key.']" value="'.$map.'">';
+				}
+				if(!IS_AJAX) {
+					echo '<button class="btn btn-warning">Import next batch</button>';
+					?>
+					<script>
+					$(function() {
+						if($('#import_form> input[name="timeout"]').val() > 0) {
+							setTimeout(function() {
+								$('#import_form').submit()
+							}, $('#import_form> input[name="timeout"]').val());
+						}
+					});
+					</script>
+					<?php
+				}
+				echo '</form>';
+			}
+			
+#			echo memory_get_usage().'|'.memory_get_peak_usage().'</br>';
+#			echo memory_get_usage(true).'|'.memory_get_peak_usage(true).'</br>';
+		}
+	}
+	
+	public function view_subset_edit() {
+		global $CONFIG;
+		# allow only admin
+		if($this -> User -> gid() != 1) {
+			$this -> view_forbidden();
+			exit;
+		}
+		
+		if($this -> User -> gid() == 1) {
+			echo '<table class="table table-striped table-hover">';
+			# header
+			echo '<thead>';
+			echo '<tr>';
+			echo '<td><b>Name</b></td>';
+			echo '<td><b>Description</b></td>';
+			echo '<td><b>Edit</b></td>';
+			echo '<td><b>Delete</b></td>';
+			echo '</tr>';
+			echo '</thead>';
+			
+			$projects = array();
+			$query = 'SELECT id, name, description FROM '.$this -> project.'docking_ligand_subset';
+			$this -> Database -> query($query);
+			while($row = $this -> Database -> fetch_assoc()) {
+				echo '<tr>';
+				echo '<td>'.$row['name'].'</td>';
+				echo '<td>'.$row['description'].'</td>';
+				echo '<td><a class="btn btn-warning btn-mini"><i class="icon-edit icon-white"></i></a></td>';
+				echo '<td><a href="'.$this -> get_link(array('mode' => 'subset_delete', 'sid' => $row['id'])).'" data-target="#modal" class="btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
+				echo '</tr>';
+			}
+			
+			echo '</table>';
+		}
+	}
+	
+	public function view_subset_delete() {
+		global $CONFIG;
+		# allow only admin
+		if($this -> User -> gid() != 1) {
+			$this -> view_forbidden();
+			exit;
+		}
+		
+		if($this -> User -> gid() == 1) {
+			if(!empty($_POST['confirm']) && $this -> status == 'deleted') {
+				echo '<div class="alert alert-success">';
+				echo 'Subset successfuly deleted';
+				echo '</div>';
+			}
+			else {
+				# get user name
+				$query = 'SELECT id, name FROM '.$this -> project.'docking_ligand_subset WHERE id = '.(int) $_GET['sid'].';';
+				$this -> Database -> query($query);
+				$row = $this -> Database -> fetch_assoc();
+				echo '<form method="POST" action="'.$this -> get_link().'">';
+				echo '<div class="alert alert-error">';
+				echo '<b>LAST WARNING!</b> Do you want to delete subset <b>'.$row['name'].'</b>? This action cannot be reverted!</br>';
+				echo '<input type="hidden" name="confirm" value="1">';
+				if(!IS_AJAX) {
+					echo '<button class="btn btn-danger">Confirm</button>';
+				}
+				echo '</div>';
+				echo '</form>';
+
+			}
+			
+		}
+	}
+	
+	public function view_user_subset_delete() {
+		global $CONFIG;
+		# allow only admin
+		if($this -> User -> gid() != 1) {
+			$this -> view_forbidden();
+			exit;
+		}
+		
+		if($this -> User -> gid() == 1) {
+			if(!empty($_POST['confirm']) && $this -> status == 'deleted') {
+				echo '<div class="alert alert-success">';
+				echo 'Subset successfuly deleted';
+				echo '</div>';
+			}
+			else {
+				# get user name
+				$query = 'SELECT id, name FROM '.$this -> project.'docking_user_subset WHERE id = '.(int) $_GET['sid'].';';
+				$this -> Database -> query($query);
+				$row = $this -> Database -> fetch_assoc();
+				echo '<form method="POST" action="'.$this -> get_link().'">';
+				echo '<div class="alert alert-error">';
+				echo '<b>LAST WARNING!</b> Do you want to delete subset <b>'.$row['name'].'</b>? This action cannot be reverted!</br>';
+				echo '<input type="hidden" name="confirm" value="1">';
+				if(!IS_AJAX) {
+					echo '<button class="btn btn-danger">Confirm</button>';
+				}
+				echo '</div>';
+				echo '</form>';
+
+			}
+			
 		}
 	}
 }
