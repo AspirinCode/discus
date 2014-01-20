@@ -4299,7 +4299,7 @@ class molecules extends base {
 			echo '<th>Subset</th>';
 			echo '<th># of ligands</th>';
 			echo '<th># of conformations</th>';
-			if($this -> User -> gid() == 1) {
+			if($this -> User -> gid() == 1 || in_array($this -> project_id, $this -> User -> admin_acl())) {
 				echo '<th colspan=2>Administration</th>';
 			}
 			echo '</tr>';
@@ -4313,7 +4313,7 @@ class molecules extends base {
 				echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'subset' => 'ligand-'.$row['ligand_subset']), array(), array('project')).'">'.$subsets[$row['ligand_subset']]['name'].'</a></th>';
 				echo '<td><span class="badge badge-success">'.number_format($row['mol_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
 				echo '<td><span class="badge">'.number_format($row['conf_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
-				if($this -> User -> gid() == 1) {
+				if($this -> User -> gid() == 1 || in_array($this -> project_id, $this -> User -> admin_acl())) {
 					echo '<td></td>';
 					echo '<td><a href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'subset_delete', 'sid' => $row['ligand_subset'])).'" data-toggle="modal" data-target="#modal" class="btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
 				}
@@ -4333,7 +4333,7 @@ class molecules extends base {
 				echo '<th>User subset</th>';
 				echo '<th># of ligands</th>';
 				echo '<th># of conformations</th>';
-				if($this -> User -> gid() == 1) {
+				if($this -> User -> gid() == 1 || in_array($this -> project_id, $this -> User -> admin_acl())) {
 					echo '<th colspan=2>Administration</th>';
 				}
 				echo '</tr>';
@@ -4344,7 +4344,7 @@ class molecules extends base {
 					echo '<td><a href="'.$this->get_link(array('module' => 'molecules', 'mode' => 'search', 'subset' => 'user-'.$row['sid']), array(), array('project')).'">'.$row['name'].'</a></th>';
 					echo '<td><span class="badge badge-success">'.number_format($row['mol_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
 					echo '<td><span class="badge">'.number_format($row['conf_num'], $decimals = 0 , $dec_point = ',' , $thousands_sep = ' ' ).'</span></th>';
-					if($this -> User -> gid() == 1) {
+					if($this -> User -> gid() == 1 || in_array($this -> project_id, $this -> User -> admin_acl())) {
 						echo '<td></td>';
 						echo '<td><a href="'.$this -> get_link(array('module' => 'data_management', 'mode' => 'user_subset_delete', 'sid' => $row['sid'])).'" data-toggle="modal" data-target="#modal" class="btn btn-danger btn-mini"><i class="icon-trash icon-white"></i></a></td>';
 					}

@@ -400,7 +400,7 @@ class data_management extends base {
 	}
 	
 	public function subset_delete() {
-		if($this -> User -> gid() == 1 && !empty($_POST['confirm']) && !empty($_GET['sid'])) {
+		if(($this -> User -> gid() == 1 || in_array($this -> project_id, $this -> User -> admin_acl())) && !empty($_POST['confirm']) && !empty($_GET['sid'])) {
 			$query = 'DELETE FROM '.$this -> project.'docking_ligand_subset WHERE id = "'.(int) $_GET['sid'].'";';
 			if($this -> Database -> query($query)) {
 				$this -> status = 'deleted';
@@ -409,7 +409,7 @@ class data_management extends base {
 	}
 	
 	public function user_subset_delete() {
-		if($this -> User -> gid() == 1 && !empty($_POST['confirm']) && !empty($_GET['sid'])) {
+		if(($this -> User -> gid() == 1 || in_array($this -> project_id, $this -> User -> admin_acl())) && !empty($_POST['confirm']) && !empty($_GET['sid'])) {
 			$query = 'DELETE FROM '.$this -> project.'docking_user_subset WHERE id = "'.(int) $_GET['sid'].'";';
 			if($this -> Database -> query($query)) {
 				$this -> status = 'deleted';
@@ -872,12 +872,12 @@ class data_management extends base {
 	public function view_subset_edit() {
 		global $CONFIG;
 		# allow only admin
-		if($this -> User -> gid() != 1) {
+		if($this -> User -> gid() != 1 && !in_array($this -> project_id, $this -> User -> admin_acl())) {
 			$this -> view_forbidden();
 			exit;
 		}
 		
-		if($this -> User -> gid() == 1) {
+		if($this -> User -> gid() == 1 || in_array($this -> project_id, $this -> User -> admin_acl())) {
 			echo '<table class="table table-striped table-hover">';
 			# header
 			echo '<thead>';
@@ -908,12 +908,12 @@ class data_management extends base {
 	public function view_subset_delete() {
 		global $CONFIG;
 		# allow only admin
-		if($this -> User -> gid() != 1) {
+		if($this -> User -> gid() != 1 && !in_array($this -> project_id, $this -> User -> admin_acl())) {
 			$this -> view_forbidden();
 			exit;
 		}
 		
-		if($this -> User -> gid() == 1) {
+		if($this -> User -> gid() == 1 || in_array($this -> project_id, $this -> User -> admin_acl())) {
 			if(!empty($_POST['confirm']) && $this -> status == 'deleted') {
 				echo '<div class="alert alert-success">';
 				echo 'Subset successfuly deleted';
@@ -942,12 +942,12 @@ class data_management extends base {
 	public function view_user_subset_delete() {
 		global $CONFIG;
 		# allow only admin
-		if($this -> User -> gid() != 1) {
+		if($this -> User -> gid() != 1 && !in_array($this -> project_id, $this -> User -> admin_acl())) {
 			$this -> view_forbidden();
 			exit;
 		}
 		
-		if($this -> User -> gid() == 1) {
+		if($this -> User -> gid() == 1 || in_array($this -> project_id, $this -> User -> admin_acl())) {
 			if(!empty($_POST['confirm']) && $this -> status == 'deleted') {
 				echo '<div class="alert alert-success">';
 				echo 'Subset successfuly deleted';

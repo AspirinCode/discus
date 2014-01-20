@@ -22,14 +22,15 @@ along with DiSCuS.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 class User {
-	public $logged = false;
+	private $logged = false;
 	private $salt = null;
 	private $password = null;
 	
-	public $id = null;
-	public $gid = null;
-	public $login = null;
-	public $acl = array();
+	private $id = null;
+	private $gid = null;
+	private $login = null;
+	private $acl = array();
+	private $admin_acl = array();
 	
 	function __construct() {
 		global $CONFIG, $Database;
@@ -103,6 +104,10 @@ class User {
 		return $this -> acl;
 	}
 	
+	public function admin_acl() {
+		return $this -> admin_acl;
+	}
+	
 	public function logged() {
 		return $this -> logged;
 	}
@@ -111,16 +116,16 @@ class User {
 		global $Database, $CONFIG;
 
 		if($this -> id) {
-			$vars = '`id` = "'.$this -> id.'"';
+			$vars = '`user`.`id` = "'.$this -> id.'"';
 		}
 		elseif($this -> login) {
-			$vars = '`login` = "'.$this -> login.'"';
+			$vars = '`user`.`login` = "'.$this -> login.'"';
 		}
 		else {
 			return false;
 		}
 	
-		$query = 'SELECT id, gid, login, password, salt, GROUP_CONCAT(perm.pid) AS acl FROM '.$CONFIG['db_name'].'.docking_users AS user LEFT JOIN '.$CONFIG['db_name'].'.docking_project_permitions AS perm ON user.id = perm.uid WHERE '.$vars.'  GROUP BY user.id LIMIT 1';
+		$query = 'SELECT user.id, user.gid, user.login, user.password, user.salt, GROUP_CONCAT(perm.pid) AS acl, GROUP_CONCAT(proj.id) AS admin_acl FROM '.$CONFIG['db_name'].'.docking_users AS user LEFT JOIN '.$CONFIG['db_name'].'.docking_project_permitions AS perm ON user.id = perm.uid LEFT JOIN '.$CONFIG['db_name'].'.docking_project AS proj ON user.id = proj.user_id WHERE '.$vars.'  GROUP BY user.id LIMIT 1';
 		$this -> Database -> query($query);
 		
 		if($this -> Database -> num_rows() == 1) {		
@@ -152,6 +157,7 @@ class User {
 					}
 					else {
 						$this -> acl = array_filter(explode(',', $row['acl']));
+						$this -> admin_acl = array_filter(explode(',', $row['admin_acl']));
 					}
 				}		
 				return true;
