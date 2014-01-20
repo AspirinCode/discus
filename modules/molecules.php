@@ -2465,13 +2465,13 @@ class molecules extends base {
 		}
 		
 		echo '
-			var useSignedApplet = false;
+			var useSignedApplet = true;
 		
 			var Info = {
 				width: "100%",
 				height: $(window).height()*0.8,
 				color: "black",
-				serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/jsmol.php",
+				serverURL: "jsmol/jsmol.php",
 				use: use,
 				jarPath: "jsmol/java",
 				jarFile: (useSignedApplet ? "JmolAppletSigned.jar" : "JmolApplet.jar"),
@@ -4683,6 +4683,8 @@ class molecules extends base {
 					?>
 					<script>
 					$(function() {
+						// set fixed width of applet, dirty hack
+						$("#jmol-wrapper").width($("#jmol-wrapper").parent().width());
 						//activate affix
 						$("#jmol-wrapper").affix({
 						    offset: {
@@ -4691,17 +4693,17 @@ class molecules extends base {
 						});
 						
 						//clone table header
-						parent = $('tr', $('table.molecules')).first()
-						clone = parent.clone().appendTo($('table.molecules'))
-						clone.children().each(function(index) {
-							$(this).width(parent.children().eq(index).width())
-						});
-						clone.width(parent.width());
-						clone.affix({
-						    offset: {
-							top: parent.position().top
-						    }
-						});
+						//parent = $('tr', $('table.molecules')).first()
+						//clone = parent.clone().appendTo($('table.molecules'))
+						//clone.children().each(function(index) {
+						//	$(this).width(parent.children().eq(index).width())
+						//});
+						//clone.width(parent.width());
+						//clone.affix({
+						//    offset: {
+						//	top: parent.position().top
+						//    }
+						//});
 					});
 					</script>
 					<?php

@@ -102,10 +102,9 @@ else {
 	
 	<script type="text/javascript" src="//www.google.com/jsapi"></script>
 	
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script type="text/javascript" src="jsmol/JSmol.min.nojq.js"></script>
 
-	<script type="text/javascript" src="jsmol/JSmol.min.js"></script>
-	<script type="text/javascript" src="jsmol/js/JSmolThree.js"></script>
-	<script type="text/javascript" src="jsmol/js/JSmolGLmol.js"></script>
 	
 	<script type="text/javascript" language="javascript" src="jsme/jsme/jsme.nocache.js"></script>
 
@@ -260,7 +259,7 @@ if(is_object($Timer)) {
 <?php
 }
 ?>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
 <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
 <script src="jquery/jquery.form.min.js"></script>
 <script type="text/javascript" src="common_jquery.js"></script>
