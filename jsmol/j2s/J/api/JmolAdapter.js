@@ -1,9 +1,6 @@
 Clazz.declarePackage ("J.api");
 Clazz.load (["J.constant.EnumQuantumShell"], "J.api.JmolAdapter", ["java.util.Hashtable", "J.api.JmolViewer", "J.modelset.Group", "J.util.Elements", "J.viewer.JC"], function () {
-c$ = Clazz.decorateAsClass (function () {
-this.adapterName = null;
-Clazz.instantialize (this, arguments);
-}, J.api, "JmolAdapter");
+c$ = Clazz.declareType (J.api, "JmolAdapter");
 c$.getShellEnumeration = $_M(c$, "getShellEnumeration", 
 function (i) {
 return J.constant.EnumQuantumShell.getItem (i);
@@ -48,14 +45,6 @@ c$.getBondingRadiusFloat = $_M(c$, "getBondingRadiusFloat",
 function (atomicNumberWithIsotope, charge) {
 return J.util.Elements.getBondingRadiusFloat (atomicNumberWithIsotope, charge);
 }, "~N,~N");
-Clazz.makeConstructor (c$, 
-function (adapterName) {
-this.adapterName = adapterName;
-}, "~S");
-$_M(c$, "getAdapterName", 
-function () {
-return this.adapterName;
-});
 $_M(c$, "getAtomSetCollectionFromReader", 
 function (name, type, bufferedReader, htParams) {
 if (htParams == null) htParams =  new java.util.Hashtable ();

@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.viewer");
-Clazz.load (["J.viewer.JmolStateCreator", "java.util.Hashtable"], "J.viewer.StateCreator", ["java.lang.Boolean", "$.Float", "java.util.Arrays", "$.Date", "J.constant.EnumAxesMode", "$.EnumPalette", "$.EnumStereoMode", "$.EnumStructure", "$.EnumVdw", "J.modelset.AtomCollection", "$.Bond", "J.shape.Shape", "J.util.BSUtil", "$.C", "$.ColorEncoder", "$.Escape", "$.JmolEdge", "$.JmolFont", "$.JmolList", "$.Logger", "$.P3", "$.Parser", "$.SB", "$.TextFormat", "$.V3", "J.viewer.DataManager", "$.JC", "$.StateManager", "$.Viewer"], function () {
+Clazz.load (["J.viewer.JmolStateCreator", "java.util.Hashtable"], "J.viewer.StateCreator", ["java.lang.Boolean", "$.Float", "java.util.Arrays", "$.Date", "javajs.awt.Font", "JU.BS", "$.List", "$.P3", "$.PT", "$.SB", "$.V3", "J.constant.EnumAxesMode", "$.EnumPalette", "$.EnumStereoMode", "$.EnumStructure", "$.EnumVdw", "J.modelset.Atom", "$.AtomCollection", "$.Bond", "$.BondSet", "J.shape.Shape", "J.util.BSUtil", "$.C", "$.ColorEncoder", "$.Escape", "$.JmolEdge", "$.Logger", "J.viewer.AnimationManager", "$.GlobalSettings", "$.JC", "$.StateManager", "$.Viewer"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.viewer = null;
 this.temp = null;
@@ -17,15 +17,15 @@ Clazz.makeConstructor (c$,
 function () {
 Clazz.superConstructor (this, J.viewer.StateCreator, []);
 });
-Clazz.overrideMethod (c$, "setViewer", 
+$_V(c$, "setViewer", 
 function (viewer) {
 this.viewer = viewer;
 }, "J.viewer.Viewer");
-Clazz.overrideMethod (c$, "getStateScript", 
+$_V(c$, "getStateScript", 
 function (type, width, height) {
 var isAll = (type == null || type.equalsIgnoreCase ("all"));
-var s =  new J.util.SB ();
-var sfunc = (isAll ?  new J.util.SB ().append ("function _setState() {\n") : null);
+var s =  new JU.SB ();
+var sfunc = (isAll ?  new JU.SB ().append ("function _setState() {\n") : null);
 if (isAll) s.append ("# Jmol state version " + J.viewer.Viewer.getJmolVersion () + ";\n");
 if (this.viewer.isApplet () && isAll) {
 J.viewer.StateCreator.appendCmd (s, "# fullName = " + J.util.Escape.eS (this.viewer.fullName));
@@ -37,7 +37,7 @@ if (isAll || type.equalsIgnoreCase ("windowState")) s.append (this.getWindowStat
 if (isAll || type.equalsIgnoreCase ("fileState")) s.append (this.getFileState (sfunc));
 if (isAll || type.equalsIgnoreCase ("definedState")) s.append (this.getDefinedState (sfunc, true));
 if (isAll || type.equalsIgnoreCase ("variableState")) s.append (this.getVariableState (global, sfunc));
-if (isAll || type.equalsIgnoreCase ("dataState")) this.getDataState (this.viewer.dataManager, s, sfunc, this.getAtomicPropertyState (-1, null));
+if (isAll || type.equalsIgnoreCase ("dataState")) s.append (this.getDataState (sfunc));
 if (isAll || type.equalsIgnoreCase ("modelState")) s.append (this.getModelState (sfunc, true, this.viewer.getBooleanProperty ("saveProteinStructureState")));
 if (isAll || type.equalsIgnoreCase ("colorState")) s.append (this.getColorState (this.viewer.colorManager, sfunc));
 if (isAll || type.equalsIgnoreCase ("frameState")) s.append (this.getAnimState (this.viewer.animationManager, sfunc));
@@ -53,13 +53,36 @@ sfunc.append ("}\n\n_setState;\n");
 }if (isAll) s.appendSB (sfunc);
 return s.toString ();
 }, "~S,~N,~N");
+$_M(c$, "getDataState", 
+($fz = function (sfunc) {
+var commands =  new JU.SB ();
+var haveData = false;
+var atomProps = this.getAtomicPropertyState (-1, null);
+if (atomProps.length > 0) {
+haveData = true;
+commands.append (atomProps);
+}if (this.viewer.userVdws != null) {
+var info = this.viewer.getDefaultVdwNameOrData (0, J.constant.EnumVdw.USER, this.viewer.bsUserVdws);
+if (info.length > 0) {
+haveData = true;
+commands.append (info);
+}}if (this.viewer.nmrCalculation != null) haveData = new Boolean (haveData | this.viewer.nmrCalculation.getState (commands)).valueOf ();
+if (this.viewer.dataManager != null) haveData = new Boolean (haveData | this.viewer.dataManager.getDataState (this, commands)).valueOf ();
+if (!haveData) return "";
+var cmd = "";
+if (sfunc != null) {
+sfunc.append ("  _setDataState;\n");
+cmd = "function _setDataState() {\n";
+commands.append ("}\n\n");
+}return cmd + commands.toString ();
+}, $fz.isPrivate = true, $fz), "JU.SB");
 $_M(c$, "getDefinedState", 
 ($fz = function (sfunc, isAll) {
 var ms = this.viewer.modelSet;
 var len = ms.stateScripts.size ();
 if (len == 0) return "";
 var haveDefs = false;
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 var cmd;
 for (var i = 0; i < len; i++) {
 var ss = ms.stateScripts.get (i);
@@ -74,10 +97,10 @@ sfunc.append ("  _setDefinedState;\n");
 cmd = "function _setDefinedState() {\n\n";
 }if (sfunc != null) commands.append ("\n}\n\n");
 return cmd + commands.toString ();
-}, $fz.isPrivate = true, $fz), "J.util.SB,~B");
-Clazz.overrideMethod (c$, "getModelState", 
+}, $fz.isPrivate = true, $fz), "JU.SB,~B");
+$_V(c$, "getModelState", 
 function (sfunc, isAll, withProteinStructure) {
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 if (isAll && sfunc != null) {
 sfunc.append ("  _setModelState;\n");
 commands.append ("function _setModelState() {\n");
@@ -93,7 +116,7 @@ var ss = ms.stateScripts.get (i);
 if (!ss.inDefinedStateBlock && (cmd = ss.toString ()).length > 0) {
 commands.append ("  ").append (cmd).append ("\n");
 }}
-var sb =  new J.util.SB ();
+var sb =  new JU.SB ();
 for (var i = 0; i < ms.bondCount; i++) if (!models[bonds[i].atom1.modelIndex].isModelKit) if (bonds[i].isHydrogen () || (bonds[i].order & 131072) != 0) {
 var bond = bonds[i];
 var index = bond.atom1.index;
@@ -103,7 +126,7 @@ sb.appendI (index).appendC ('\t').appendI (bond.atom2.index).appendC ('\t').appe
 if (sb.length () > 0) commands.append ("data \"connect_atoms\"\n").appendSB (sb).append ("end \"connect_atoms\";\n");
 commands.append ("\n");
 }if (ms.haveHiddenBonds) {
-var bs =  new J.modelset.Bond.BondSet ();
+var bs =  new J.modelset.BondSet ();
 for (var i = ms.bondCount; --i >= 0; ) if (bonds[i].mad != 0 && (bonds[i].shapeVisibilityFlags & J.modelset.Bond.myVisibilityFlag) == 0) bs.set (i);
 
 if (bs.isEmpty ()) ms.haveHiddenBonds = false;
@@ -129,6 +152,7 @@ if (models[i].simpleCage != null) {
 commands.append (fcmd).append ("; unitcell ").append (J.util.Escape.eAP (models[i].simpleCage.getUnitCellVectors ())).append (";\n");
 this.getShapeState (commands, isAll, 33);
 }}
+var loadUC = false;
 if (ms.unitCells != null) {
 var haveModulation = false;
 for (var i = 0; i < modelCount; i++) {
@@ -136,22 +160,26 @@ var symmetry = ms.getUnitCell (i);
 if (symmetry == null) continue;
 commands.append ("  frame ").append (ms.getModelNumberDotted (i));
 var pt = symmetry.getFractionalOffset ();
-if (pt != null) commands.append ("; set unitcell ").append (J.util.Escape.eP (pt));
-pt = symmetry.getUnitCellMultiplier ();
-if (pt != null) commands.append ("; set unitcell ").append (J.util.Escape.eP (pt));
-commands.append (";\n");
-haveModulation = new Boolean (haveModulation | (this.viewer.modelGetLastVibrationIndex (i, 135270424) >= 0)).valueOf ();
+if (pt != null && (pt.x != 0 || pt.y != 0 || pt.z != 0)) {
+commands.append ("; set unitcell ").append (J.util.Escape.eP (pt));
+loadUC = true;
+}pt = symmetry.getUnitCellMultiplier ();
+if (pt != null) {
+commands.append ("; set unitcell ").append (J.util.Escape.eP (pt));
+loadUC = true;
+}commands.append (";\n");
+haveModulation = new Boolean (haveModulation | (this.viewer.modelGetLastVibrationIndex (i, 1276121113) >= 0)).valueOf ();
 }
+if (loadUC) this.viewer.loadShape (33);
 this.getShapeState (commands, isAll, 33);
 if (haveModulation) {
 var temp =  new java.util.Hashtable ();
 var ivib;
 for (var i = modelCount; --i >= 0; ) {
-if ((ivib = this.viewer.modelGetLastVibrationIndex (i, 135270424)) >= 0) for (var j = models[i].firstAtomIndex; j <= ivib; j++) {
+if ((ivib = this.viewer.modelGetLastVibrationIndex (i, 1276121113)) >= 0) for (var j = models[i].firstAtomIndex; j <= ivib; j++) {
 var mset = this.viewer.getVibration (j);
-if (mset != null && mset.enabled) {
-J.util.BSUtil.setMapBitSet (temp, j, j, mset.getState ());
-}}
+if (mset != null) J.util.BSUtil.setMapBitSet (temp, j, j, mset.getState ());
+}
 }
 var s = this.getCommands (temp, null, "select");
 commands.append (s);
@@ -159,7 +187,7 @@ commands.append (s);
 if (this.viewer.getBoolean (603979883)) commands.append ("  set modelKitMode true;\n");
 }if (sfunc != null) commands.append ("\n}\n\n");
 return commands.toString ();
-}, "J.util.SB,~B,~B");
+}, "JU.SB,~B,~B");
 $_M(c$, "getShapeState", 
 ($fz = function (commands, isAll, iShape) {
 var shapes = this.viewer.shapeManager.shapes;
@@ -176,11 +204,11 @@ imax = (i = iShape) + 1;
 }for (; i < imax; ++i) if ((shape = shapes[i]) != null && (isAll || J.viewer.JC.isShapeSecondary (i)) && (cmd = shape.getShapeState ()) != null && cmd.length > 1) commands.append (cmd);
 
 commands.append ("  select *;\n");
-}, $fz.isPrivate = true, $fz), "J.util.SB,~B,~N");
+}, $fz.isPrivate = true, $fz), "JU.SB,~B,~N");
 $_M(c$, "getWindowState", 
 ($fz = function (sfunc, width, height) {
 var global = this.viewer.global;
-var str =  new J.util.SB ();
+var str =  new JU.SB ();
 if (sfunc != null) {
 sfunc.append ("  initialize;\n  set refreshing false;\n  _setWindowState;\n");
 str.append ("\nfunction _setWindowState() {\n");
@@ -195,10 +223,10 @@ str.append (this.getSpecularState ());
 J.viewer.StateCreator.appendCmd (str, "statusReporting  = " + global.statusReporting);
 if (sfunc != null) str.append ("}\n\n");
 return str.toString ();
-}, $fz.isPrivate = true, $fz), "J.util.SB,~N,~N");
-Clazz.overrideMethod (c$, "getSpecularState", 
+}, $fz.isPrivate = true, $fz), "JU.SB,~N,~N");
+$_V(c$, "getSpecularState", 
 function () {
-var str =  new J.util.SB ();
+var str =  new JU.SB ();
 var g = this.viewer.gdata;
 J.viewer.StateCreator.appendCmd (str, "set ambientPercent " + g.getAmbientPercent ());
 J.viewer.StateCreator.appendCmd (str, "set diffusePercent " + g.getDiffusePercent ());
@@ -206,6 +234,7 @@ J.viewer.StateCreator.appendCmd (str, "set specular " + g.getSpecular ());
 J.viewer.StateCreator.appendCmd (str, "set specularPercent " + g.getSpecularPercent ());
 J.viewer.StateCreator.appendCmd (str, "set specularPower " + g.getSpecularPower ());
 J.viewer.StateCreator.appendCmd (str, "set celShading " + g.getCel ());
+J.viewer.StateCreator.appendCmd (str, "set celShadingPower " + g.getCelPower ());
 var se = g.getSpecularExponent ();
 var pe = g.getPhongExponent ();
 if (Math.pow (2, se) == pe) J.viewer.StateCreator.appendCmd (str, "set specularExponent " + se);
@@ -215,7 +244,7 @@ return str.toString ();
 });
 $_M(c$, "getFileState", 
 ($fz = function (sfunc) {
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 if (sfunc != null) {
 sfunc.append ("  _setFileState;\n");
 commands.append ("function _setFileState() {\n\n");
@@ -223,7 +252,7 @@ commands.append ("function _setFileState() {\n\n");
 this.appendLoadStates (commands);
 if (sfunc != null) commands.append ("\n}\n\n");
 return commands.toString ();
-}, $fz.isPrivate = true, $fz), "J.util.SB");
+}, $fz.isPrivate = true, $fz), "JU.SB");
 $_M(c$, "appendLoadStates", 
 ($fz = function (cmds) {
 var ligandModelSet = this.viewer.ligandModelSet;
@@ -234,7 +263,7 @@ if (data != null) cmds.append ("  ").append (J.util.Escape.encapsulateData ("lig
 data = this.viewer.ligandModels.get (key + "_file");
 if (data != null) cmds.append ("  ").append (J.util.Escape.encapsulateData ("file_" + key, data.trim () + "\n", 0));
 }
-}var commands =  new J.util.SB ();
+}var commands =  new JU.SB ();
 var ms = this.viewer.modelSet;
 var models = ms.models;
 var modelCount = ms.modelCount;
@@ -248,8 +277,8 @@ var bs = ms.getModelAtomBitSetIncludingDeleted (i, false);
 if (ms.tainted != null) {
 if (ms.tainted[2] != null) ms.tainted[2].andNot (bs);
 if (ms.tainted[3] != null) ms.tainted[3].andNot (bs);
-}m.loadScript =  new J.util.SB ();
-J.viewer.Viewer.getInlineData (commands, this.viewer.getModelExtract (bs, false, true, "MOL"), i > 0);
+}m.loadScript =  new JU.SB ();
+this.getInlineData (commands, this.viewer.getModelExtract (bs, false, true, "MOL"), i > 0, null);
 } else {
 commands.appendSB (m.loadScript);
 }}
@@ -260,59 +289,19 @@ if (j >= 0 && j < i) i = j;
 if ((j = s.indexOf ("load \"@")) >= 0 && j < i) i = j;
 if (i >= 0) s = s.substring (0, i) + "zap;" + s.substring (i);
 cmds.append (s);
-}, $fz.isPrivate = true, $fz), "J.util.SB");
-$_M(c$, "getDataState", 
-($fz = function (dm, state, sfunc, atomProps) {
-if (dm.dataValues == null) return;
-var sb =  new J.util.SB ();
-var haveData = false;
-if (atomProps.length > 0) {
-haveData = true;
-sb.append (atomProps);
-}for (var name, $name = dm.dataValues.keySet ().iterator (); $name.hasNext () && ((name = $name.next ()) || true);) {
-if (name.indexOf ("property_") == 0) {
-var obj = dm.dataValues.get (name);
-if (obj.length > 4 && obj[4] === Boolean.FALSE) continue;
-haveData = true;
-var data = obj[1];
-if (data != null && (obj[3]).intValue () == 1) {
-this.getAtomicPropertyStateBuffer (sb, 14, obj[2], name, data);
-sb.append ("\n");
-} else {
-sb.append ("\n").append (J.util.Escape.encapsulateData (name, data, 0));
-}} else if (name.indexOf ("data2d") == 0) {
-var obj = dm.dataValues.get (name);
-var data = obj[1];
-if (data != null && (obj[3]).intValue () == 2) {
-haveData = true;
-sb.append ("\n").append (J.util.Escape.encapsulateData (name, data, 2));
-}} else if (name.indexOf ("data3d") == 0) {
-var obj = dm.dataValues.get (name);
-var data = obj[1];
-if (data != null && (obj[3]).intValue () == 3) {
-haveData = true;
-sb.append ("\n").append (J.util.Escape.encapsulateData (name, data, 3));
-}}}
-if (dm.userVdws != null) {
-var info = dm.getDefaultVdwNameOrData (0, J.constant.EnumVdw.USER, dm.bsUserVdws);
-if (info.length > 0) {
-haveData = true;
-sb.append (info);
-}}if (this.viewer.nmrCalculation != null) haveData = new Boolean (haveData | this.viewer.getNMRCalculation ().getState (sb)).valueOf ();
-if (!haveData) return;
-if (sfunc != null) state.append ("function _setDataState() {\n");
-state.appendSB (sb);
-if (sfunc != null) {
-sfunc.append ("  _setDataState;\n");
-state.append ("}\n\n");
-}}, $fz.isPrivate = true, $fz), "J.viewer.DataManager,J.util.SB,J.util.SB,~S");
+}, $fz.isPrivate = true, $fz), "JU.SB");
+$_V(c$, "getInlineData", 
+function (loadScript, strModel, isAppend, loadFilter) {
+var tag = (isAppend ? "append" : "model") + " inline";
+loadScript.append ("load /*data*/ data \"").append (tag).append ("\"\n").append (strModel).append ("end \"").append (tag).append (loadFilter == null || loadFilter.length == 0 ? "" : " filter" + J.util.Escape.eS (loadFilter)).append ("\";");
+}, "JU.SB,~S,~B,~S");
 $_M(c$, "getColorState", 
 ($fz = function (cm, sfunc) {
-var s =  new J.util.SB ();
+var s =  new JU.SB ();
 var n = this.getCEState (cm.propertyColorEncoder, s);
 if (n > 0 && sfunc != null) sfunc.append ("\n  _setColorState\n");
 return (n > 0 && sfunc != null ? "function _setColorState() {\n" + s.append ("}\n\n").toString () : s.toString ());
-}, $fz.isPrivate = true, $fz), "J.viewer.ColorManager,J.util.SB");
+}, $fz.isPrivate = true, $fz), "J.viewer.ColorManager,JU.SB");
 $_M(c$, "getCEState", 
 ($fz = function (p, s) {
 var n = 0;
@@ -321,12 +310,12 @@ var name = entry.getKey ();
 if ( new Boolean (name.length > 0 & n++ >= 0).valueOf ()) s.append ("color \"" + name + "=" + J.util.ColorEncoder.getColorSchemeList (entry.getValue ()) + "\";\n");
 }
 return n;
-}, $fz.isPrivate = true, $fz), "J.util.ColorEncoder,J.util.SB");
+}, $fz.isPrivate = true, $fz), "J.util.ColorEncoder,JU.SB");
 $_M(c$, "getAnimState", 
 ($fz = function (am, sfunc) {
 var modelCount = this.viewer.getModelCount ();
 if (modelCount < 2) return "";
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 if (sfunc != null) {
 sfunc.append ("  _setFrameState;\n");
 commands.append ("function _setFrameState() {\n");
@@ -352,19 +341,19 @@ J.viewer.StateCreator.appendCmd (commands, "animation " + (!am.animationOn ? "OF
 if (am.animationOn && am.animationPaused) J.viewer.StateCreator.appendCmd (commands, "animation PAUSE");
 if (sfunc != null) commands.append ("}\n\n");
 return commands.toString ();
-}, $fz.isPrivate = true, $fz), "J.viewer.AnimationManager,J.util.SB");
+}, $fz.isPrivate = true, $fz), "J.viewer.AnimationManager,JU.SB");
 $_M(c$, "getVariableState", 
 ($fz = function (global, sfunc) {
 var list =  new Array (global.htBooleanParameterFlags.size () + global.htNonbooleanParameterValues.size ());
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 var isState = (sfunc != null);
 if (isState) {
 sfunc.append ("  _setVariableState;\n");
 commands.append ("function _setVariableState() {\n\n");
 }var n = 0;
-for (var key, $key = global.htBooleanParameterFlags.keySet ().iterator (); $key.hasNext () && ((key = $key.next ()) || true);) if (J.viewer.StateManager.doReportProperty (key)) list[n++] = "set " + key + " " + global.htBooleanParameterFlags.get (key);
+for (var key, $key = global.htBooleanParameterFlags.keySet ().iterator (); $key.hasNext () && ((key = $key.next ()) || true);) if (J.viewer.GlobalSettings.doReportProperty (key)) list[n++] = "set " + key + " " + global.htBooleanParameterFlags.get (key);
 
-for (var key, $key = global.htNonbooleanParameterValues.keySet ().iterator (); $key.hasNext () && ((key = $key.next ()) || true);) if (J.viewer.StateManager.doReportProperty (key)) {
+for (var key, $key = global.htNonbooleanParameterValues.keySet ().iterator (); $key.hasNext () && ((key = $key.next ()) || true);) if (J.viewer.GlobalSettings.doReportProperty (key)) {
 var value = global.htNonbooleanParameterValues.get (key);
 if (key.charAt (0) == '=') {
 key = key.substring (1);
@@ -399,10 +388,10 @@ commands.append ("struture SHEET set " + J.util.Escape.eAF (slist.get (J.constan
 commands.append ("struture TURN set " + J.util.Escape.eAF (slist.get (J.constant.EnumStructure.TURN)));
 }if (sfunc != null) commands.append ("\n}\n\n");
 return commands.toString ();
-}, $fz.isPrivate = true, $fz), "J.viewer.StateManager.GlobalSettings,J.util.SB");
+}, $fz.isPrivate = true, $fz), "J.viewer.GlobalSettings,JU.SB");
 $_M(c$, "getDefaultLabelState", 
 ($fz = function (l) {
-var s =  new J.util.SB ().append ("\n# label defaults;\n");
+var s =  new JU.SB ().append ("\n# label defaults;\n");
 J.viewer.StateCreator.appendCmd (s, "select none");
 J.viewer.StateCreator.appendCmd (s, J.shape.Shape.getColorCommand ("label", l.defaultPaletteID, l.defaultColix, l.translucentAllowed));
 J.viewer.StateCreator.appendCmd (s, "background label " + J.shape.Shape.encodeColor (l.defaultBgcolix));
@@ -413,12 +402,12 @@ var pointer = J.viewer.JC.getPointer (l.defaultPointer);
 J.viewer.StateCreator.appendCmd (s, "set labelPointer " + (pointer.length == 0 ? "off" : pointer));
 if ((l.defaultZPos & 32) != 0) J.viewer.StateCreator.appendCmd (s, "set labelFront");
  else if ((l.defaultZPos & 16) != 0) J.viewer.StateCreator.appendCmd (s, "set labelGroup");
-J.viewer.StateCreator.appendCmd (s, J.shape.Shape.getFontCommand ("label", J.util.JmolFont.getFont3D (l.defaultFontId)));
+J.viewer.StateCreator.appendCmd (s, J.shape.Shape.getFontCommand ("label", javajs.awt.Font.getFont3D (l.defaultFontId)));
 return s.toString ();
 }, $fz.isPrivate = true, $fz), "J.shape.Labels");
 $_M(c$, "getSelectionState", 
 ($fz = function (sm, sfunc) {
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 if (sfunc != null) {
 sfunc.append ("  _setSelectionState;\n");
 commands.append ("function _setSelectionState() {\n");
@@ -438,8 +427,8 @@ commands.append (this.viewer.getShapeProperty (1, "selectionState"));
 if (this.viewer.getSelectionHaloEnabled (false)) J.viewer.StateCreator.appendCmd (commands, "SelectionHalos ON");
 if (sfunc != null) commands.append ("}\n\n");
 return commands.toString ();
-}, $fz.isPrivate = true, $fz), "J.viewer.SelectionManager,J.util.SB");
-Clazz.overrideMethod (c$, "getTrajectoryState", 
+}, $fz.isPrivate = true, $fz), "J.viewer.SelectionManager,JU.SB");
+$_V(c$, "getTrajectoryState", 
 function () {
 var s = "";
 var m = this.viewer.modelSet;
@@ -455,7 +444,7 @@ return s;
 });
 $_M(c$, "getViewState", 
 ($fz = function (tm, sfunc) {
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 var moveToText = tm.getMoveToText (0, false);
 if (sfunc != null) {
 sfunc.append ("  _setPerspectiveState;\n");
@@ -494,8 +483,8 @@ commands.append (tm.getNavigationState ());
 if (tm.depthPlane != null || tm.slabPlane != null) commands.append ("  slab on;\n");
 }if (sfunc != null) commands.append ("}\n\n");
 return commands.toString ();
-}, $fz.isPrivate = true, $fz), "J.viewer.TransformManager,J.util.SB");
-Clazz.overrideMethod (c$, "getSpinState", 
+}, $fz.isPrivate = true, $fz), "J.viewer.TransformManager,JU.SB");
+$_V(c$, "getSpinState", 
 function (isAll) {
 var tm = this.viewer.transformManager;
 var s = "  set spinX " + Clazz.floatToInt (tm.spinX) + "; set spinY " + Clazz.floatToInt (tm.spinY) + "; set spinZ " + Clazz.floatToInt (tm.spinZ) + "; set spinFps " + Clazz.floatToInt (tm.spinFps) + ";";
@@ -504,7 +493,7 @@ if (tm.navOn) s += " navigation on;";
 if (!tm.spinOn) return s;
 var prefix = (tm.isSpinSelected ? "\n  select " + J.util.Escape.eBS (this.viewer.getSelectionSet (false)) + ";\n  rotateSelected" : "\n ");
 if (tm.isSpinInternal) {
-var pt = J.util.P3.newP (tm.internalRotationCenter);
+var pt = JU.P3.newP (tm.internalRotationCenter);
 pt.sub (tm.rotationAxis);
 s += prefix + " spin " + tm.rotationRate + " " + J.util.Escape.eP (tm.internalRotationCenter) + " " + J.util.Escape.eP (pt);
 } else if (tm.isSpinFixed) {
@@ -513,7 +502,7 @@ s += prefix + " spin axisangle " + J.util.Escape.eP (tm.rotationAxis) + " " + tm
 s += " spin on";
 }return s + ";";
 }, "~B");
-Clazz.overrideMethod (c$, "getInfo", 
+$_V(c$, "getInfo", 
 function (manager) {
 if (Clazz.instanceOf (manager, J.viewer.AnimationManager)) return this.getAnimationInfo (manager);
 return null;
@@ -540,9 +529,9 @@ info.put ("animationOn", Boolean.$valueOf (am.animationOn));
 info.put ("animationPaused", Boolean.$valueOf (am.animationPaused));
 return info;
 }, $fz.isPrivate = true, $fz), "J.viewer.AnimationManager");
-Clazz.overrideMethod (c$, "getCommands", 
+$_V(c$, "getCommands", 
 function (htDefine, htMore, selectCmd) {
-var s =  new J.util.SB ();
+var s =  new JU.SB ();
 var setPrev = J.viewer.StateCreator.getCommands2 (htDefine, s, null, selectCmd);
 if (htMore != null) J.viewer.StateCreator.getCommands2 (htMore, s, setPrev, "select");
 return s.toString ();
@@ -560,33 +549,33 @@ setPrev = set;
 if (key.indexOf ("-") != 0) J.viewer.StateCreator.appendCmd (s, key);
 }
 return setPrev;
-}, $fz.isPrivate = true, $fz), "java.util.Map,J.util.SB,~S,~S");
+}, $fz.isPrivate = true, $fz), "java.util.Map,JU.SB,~S,~S");
 c$.appendCmd = $_M(c$, "appendCmd", 
 ($fz = function (s, cmd) {
 if (cmd.length == 0) return;
 s.append ("  ").append (cmd).append (";\n");
-}, $fz.isPrivate = true, $fz), "J.util.SB,~S");
+}, $fz.isPrivate = true, $fz), "JU.SB,~S");
 c$.addBs = $_M(c$, "addBs", 
 ($fz = function (sb, key, bs) {
 if (bs == null || bs.length () == 0) return;
 J.viewer.StateCreator.appendCmd (sb, key + J.util.Escape.eBS (bs));
-}, $fz.isPrivate = true, $fz), "J.util.SB,~S,J.util.BS");
-Clazz.overrideMethod (c$, "getFontState", 
+}, $fz.isPrivate = true, $fz), "JU.SB,~S,JU.BS");
+$_V(c$, "getFontState", 
 function (myType, font3d) {
 var objId = J.viewer.StateManager.getObjectIdFromName (myType.equalsIgnoreCase ("axes") ? "axis" : myType);
 if (objId < 0) return "";
 var mad = this.viewer.getObjectMad (objId);
-var s =  new J.util.SB ().append ("\n");
+var s =  new JU.SB ().append ("\n");
 J.viewer.StateCreator.appendCmd (s, myType + (mad == 0 ? " off" : mad == 1 ? " on" : mad == -1 ? " dotted" : mad < 20 ? " " + mad : " " + (mad / 2000)));
 if (s.length () < 3) return "";
 var fcmd = J.shape.Shape.getFontCommand (myType, font3d);
 if (fcmd.length > 0) fcmd = "  " + fcmd + ";\n";
 return (s + fcmd);
-}, "~S,J.util.JmolFont");
-Clazz.overrideMethod (c$, "getFontLineShapeState", 
+}, "~S,javajs.awt.Font");
+$_V(c$, "getFontLineShapeState", 
 function (s, myType, tickInfos) {
 var isOff = (s.indexOf (" off") >= 0);
-var sb =  new J.util.SB ();
+var sb =  new JU.SB ();
 sb.append (s);
 for (var i = 0; i < 4; i++) if (tickInfos[i] != null) this.appendTickInfo (myType, sb, tickInfos[i]);
 
@@ -599,7 +588,7 @@ sb.append ("  ");
 sb.append (myType);
 J.viewer.StateCreator.addTickInfo (sb, t, false);
 sb.append (";\n");
-}, $fz.isPrivate = true, $fz), "~S,J.util.SB,J.modelset.TickInfo");
+}, $fz.isPrivate = true, $fz), "~S,JU.SB,J.modelset.TickInfo");
 c$.addTickInfo = $_M(c$, "addTickInfo", 
 ($fz = function (sb, tickInfo, addFirst) {
 sb.append (" ticks ").append (tickInfo.type).append (" ").append (J.util.Escape.eP (tickInfo.ticks));
@@ -609,8 +598,8 @@ if (tickInfo.tickLabelFormats != null) sb.append (" format ").append (J.util.Esc
 if (!isUnitCell && tickInfo.scale != null) sb.append (" scale ").append (J.util.Escape.eP (tickInfo.scale));
 if (addFirst && !Float.isNaN (tickInfo.first) && tickInfo.first != 0) sb.append (" first ").appendF (tickInfo.first);
 if (tickInfo.reference != null) sb.append (" point ").append (J.util.Escape.eP (tickInfo.reference));
-}, $fz.isPrivate = true, $fz), "J.util.SB,J.modelset.TickInfo,~B");
-Clazz.overrideMethod (c$, "getShapeSetState", 
+}, $fz.isPrivate = true, $fz), "JU.SB,J.modelset.TickInfo,~B");
+$_V(c$, "getShapeSetState", 
 function (as, shape, monomerCount, monomers, bsSizeDefault, temp, temp2) {
 var type = J.viewer.JC.shapeClassBases[shape.shapeID];
 for (var i = 0; i < monomerCount; i++) {
@@ -621,15 +610,15 @@ if (bsSizeDefault.get (i)) J.util.BSUtil.setMapBitSet (temp, atomIndex1, atomInd
  else J.util.BSUtil.setMapBitSet (temp, atomIndex1, atomIndex2, type + " " + (as.mads[i] / 2000));
 }if (as.bsColixSet != null && as.bsColixSet.get (i)) J.util.BSUtil.setMapBitSet (temp2, atomIndex1, atomIndex2, J.shape.Shape.getColorCommand (type, as.paletteIDs[i], as.colixes[i], shape.translucentAllowed));
 }
-}, "J.shape.AtomShape,J.shape.Shape,~N,~A,J.util.BS,java.util.Map,java.util.Map");
-Clazz.overrideMethod (c$, "getMeasurementState", 
+}, "J.shape.AtomShape,J.shape.Shape,~N,~A,JU.BS,java.util.Map,java.util.Map");
+$_V(c$, "getMeasurementState", 
 function (shape, mList, measurementCount, font3d, ti) {
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 J.viewer.StateCreator.appendCmd (commands, "measures delete");
 for (var i = 0; i < measurementCount; i++) {
 var m = mList.get (i);
-var count = m.getCount ();
-var sb =  new J.util.SB ().append ("measure");
+var count = m.count;
+var sb =  new JU.SB ().append ("measure");
 if (m.thisID != null) sb.append (" ID ").append (J.util.Escape.eS (m.thisID));
 if (m.mad != 0) sb.append (" radius ").appendF (m.thisID == null || m.mad > 0 ? m.mad / 2000 : 0);
 if (m.colix != 0) sb.append (" color ").append (J.util.Escape.escapeColor (J.util.C.getArgb (m.colix)));
@@ -654,7 +643,7 @@ if (m.isHidden) {
 nHidden++;
 bs.set (i);
 }if (shape.bsColixSet != null && shape.bsColixSet.get (i)) J.util.BSUtil.setMapBitSet (temp, i, i, J.shape.Shape.getColorCommandUnk ("measure", m.colix, shape.translucentAllowed));
-if (m.getStrFormat () != null) J.util.BSUtil.setMapBitSet (temp, i, i, "measure " + J.util.Escape.eS (m.getStrFormat ()));
+if (m.strFormat != null) J.util.BSUtil.setMapBitSet (temp, i, i, "measure " + J.util.Escape.eS (m.strFormat));
 }
 if (nHidden > 0) if (nHidden == measurementCount) J.viewer.StateCreator.appendCmd (commands, "measures off; # lines and numbers off");
  else for (var i = 0; i < measurementCount; i++) if (bs.get (i)) J.util.BSUtil.setMapBitSet (temp, i, i, "measure off");
@@ -669,8 +658,8 @@ if (s != null && s.length != 0) {
 commands.append (s);
 J.viewer.StateCreator.appendCmd (commands, "select measures ({null})");
 }return commands.toString ();
-}, "J.shape.Measures,J.util.JmolList,~N,J.util.JmolFont,J.modelset.TickInfo");
-Clazz.overrideMethod (c$, "getBondState", 
+}, "J.shape.Measures,JU.List,~N,javajs.awt.Font,J.modelset.TickInfo");
+$_V(c$, "getBondState", 
 function (shape, bsOrderSet, reportAll) {
 this.clearTemp ();
 var modelSet = this.viewer.modelSet;
@@ -696,13 +685,13 @@ if ((colix & -30721) == 2) J.util.BSUtil.setMapBitSet (this.temp, i, i, J.shape.
 var s = this.getCommands (this.temp, null, "select BONDS") + "\n" + (haveTainted ? this.getCommands (this.temp2, null, "select BONDS") + "\n" : "");
 this.clearTemp ();
 return s;
-}, "J.shape.Shape,J.util.BS,~B");
+}, "J.shape.Shape,JU.BS,~B");
 $_M(c$, "clearTemp", 
 ($fz = function () {
 this.temp.clear ();
 this.temp2.clear ();
 }, $fz.isPrivate = true, $fz));
-Clazz.overrideMethod (c$, "getAtomShapeSetState", 
+$_V(c$, "getAtomShapeSetState", 
 function (shape, bioShapes) {
 this.clearTemp ();
 for (var i = bioShapes.length; --i >= 0; ) {
@@ -721,7 +710,7 @@ var s;
 switch (shape.shapeID) {
 case 30:
 var es = shape;
-var sb =  new J.util.SB ();
+var sb =  new JU.SB ();
 sb.append ("\n  set echo off;\n");
 for (var t, $t = es.objects.values ().iterator (); $t.hasNext () && ((t = $t.next ()) || true);) {
 sb.append (this.getTextState (t));
@@ -768,7 +757,7 @@ if ((offsetFull & 32) != 0) J.util.BSUtil.setMapBitSet (this.temp2, i, i, "set l
  else if ((offsetFull & 16) != 0) J.util.BSUtil.setMapBitSet (this.temp2, i, i, "set labelGroup");
 if (align.length > 0) J.util.BSUtil.setMapBitSet (this.temp3, i, i, "set labelAlignment " + align);
 }if (l.mads != null && l.mads[i] < 0) J.util.BSUtil.setMapBitSet (this.temp2, i, i, "set toggleLabel");
-if (l.bsFontSet != null && l.bsFontSet.get (i)) J.util.BSUtil.setMapBitSet (this.temp2, i, i, J.shape.Shape.getFontCommand ("label", J.util.JmolFont.getFont3D (l.fids[i])));
+if (l.bsFontSet != null && l.bsFontSet.get (i)) J.util.BSUtil.setMapBitSet (this.temp2, i, i, J.shape.Shape.getFontCommand ("label", javajs.awt.Font.getFont3D (l.fids[i])));
 }
 s = this.getCommands (this.temp, this.temp2, "select") + this.getCommands (null, this.temp3, "select");
 this.temp3.clear ();
@@ -801,7 +790,7 @@ return s;
 }, "J.shape.Shape");
 $_M(c$, "getTextState", 
 ($fz = function (t) {
-var s =  new J.util.SB ();
+var s =  new JU.SB ();
 var text = t.getText ();
 if (text == null || t.isLabelOrHover || t.target.equals ("error")) return "";
 var isImage = (t.image != null);
@@ -819,7 +808,7 @@ s.append ("  ").append (echoCmd).append (" ").append (strOff);
 if (t.align != 1) s.append (";  ").append (echoCmd).append (" ").append (J.viewer.JC.hAlignNames[t.align]);
 break;
 default:
-s.append ("  set echo ").append (J.viewer.JC.vAlignNames[t.align]).append (" ").append (J.viewer.JC.hAlignNames[t.align]);
+s.append ("  set echo ").append (J.viewer.JC.vAlignNames[t.valign]).append (" ").append (J.viewer.JC.hAlignNames[t.align]);
 }
 if (t.valign == 0 && t.movableZPercent != 2147483647) s.append (";  ").append (echoCmd).append (" depth ").appendI (t.movableZPercent);
 if (isImage) s.append ("; ").append (echoCmd).append (" IMAGE /*file*/");
@@ -843,10 +832,10 @@ s.append (" ").append (J.util.C.getHexCode (t.bgcolix));
 }s.append (";\n");
 return s.toString ();
 }, $fz.isPrivate = true, $fz), "J.modelset.Text");
-Clazz.overrideMethod (c$, "getLoadState", 
+$_V(c$, "getLoadState", 
 function (htParams) {
 var g = this.viewer.global;
-var str =  new J.util.SB ();
+var str =  new JU.SB ();
 J.viewer.StateCreator.appendCmd (str, "set allowEmbeddedScripts false");
 if (g.allowEmbeddedScripts) g.setB ("allowEmbeddedScripts", true);
 J.viewer.StateCreator.appendCmd (str, "set appendNew " + g.appendNew);
@@ -862,9 +851,9 @@ J.viewer.StateCreator.appendCmd (str, "set defaultLoadFilter " + J.util.Escape.e
 J.viewer.StateCreator.appendCmd (str, "set defaultLoadScript \"\"");
 if (g.defaultLoadScript.length > 0) g.setS ("defaultLoadScript", g.defaultLoadScript);
 J.viewer.StateCreator.appendCmd (str, "set defaultStructureDssp " + g.defaultStructureDSSP);
-var sMode = this.viewer.getDefaultVdwTypeNameOrData (-2147483648, null);
+var sMode = this.viewer.getDefaultVdwNameOrData (-2147483648, null, null);
 J.viewer.StateCreator.appendCmd (str, "set defaultVDW " + sMode);
-if (sMode.equals ("User")) J.viewer.StateCreator.appendCmd (str, this.viewer.getDefaultVdwTypeNameOrData (2147483647, null));
+if (sMode.equals ("User")) J.viewer.StateCreator.appendCmd (str, this.viewer.getDefaultVdwNameOrData (2147483647, null, null));
 J.viewer.StateCreator.appendCmd (str, "set forceAutoBond " + g.forceAutoBond);
 J.viewer.StateCreator.appendCmd (str, "#set defaultDirectory " + J.util.Escape.eS (g.defaultDirectory));
 J.viewer.StateCreator.appendCmd (str, "#set loadFormat " + J.util.Escape.eS (g.loadFormat));
@@ -888,10 +877,10 @@ J.viewer.StateCreator.appendCmd (str, "set smartAromatic " + g.smartAromatic);
 if (g.zeroBasedXyzRasmol) J.viewer.StateCreator.appendCmd (str, "set zeroBasedXyzRasmol true");
 return str.toString ();
 }, "java.util.Map");
-Clazz.overrideMethod (c$, "getAllSettings", 
+$_V(c$, "getAllSettings", 
 function (prefix) {
 var g = this.viewer.global;
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 var list =  new Array (g.htBooleanParameterFlags.size () + g.htNonbooleanParameterValues.size () + g.htUserVariables.size ());
 var n = 0;
 var _prefix = "_" + prefix;
@@ -920,7 +909,7 @@ c$.chop = $_M(c$, "chop",
 ($fz = function (s) {
 var len = s.length;
 if (len < 512) return s;
-var sb =  new J.util.SB ();
+var sb =  new JU.SB ();
 var sep = "\"\\\n    + \"";
 var pt = 0;
 for (var i = 72; i < len; pt = i, i += 72) {
@@ -931,7 +920,7 @@ sb.append ((pt == 0 ? "" : sep)).append (s.substring (pt, i));
 sb.append (sep).append (s.substring (pt, len));
 return sb.toString ();
 }, $fz.isPrivate = true, $fz), "~S");
-Clazz.overrideMethod (c$, "getAtomShapeState", 
+$_V(c$, "getAtomShapeState", 
 function (shape) {
 this.clearTemp ();
 var type = J.viewer.JC.shapeClassBases[shape.shapeID];
@@ -943,10 +932,10 @@ var s = this.getCommands (this.temp, this.temp2, "select");
 this.clearTemp ();
 return s;
 }, "J.shape.AtomShape");
-Clazz.overrideMethod (c$, "getFunctionCalls", 
+$_V(c$, "getFunctionCalls", 
 function (selectedFunction) {
 if (selectedFunction == null) selectedFunction = "";
-var s =  new J.util.SB ();
+var s =  new JU.SB ();
 var pt = selectedFunction.indexOf ("*");
 var isGeneric = (pt >= 0);
 var isStatic = (selectedFunction.indexOf ("static_") == 0);
@@ -971,19 +960,19 @@ c$.isTainted = $_M(c$, "isTainted",
 ($fz = function (tainted, atomIndex, type) {
 return (tainted != null && tainted[type] != null && tainted[type].get (atomIndex));
 }, $fz.isPrivate = true, $fz), "~A,~N,~N");
-Clazz.overrideMethod (c$, "getAtomicPropertyState", 
+$_V(c$, "getAtomicPropertyState", 
 function (taintWhat, bsSelected) {
 if (!this.viewer.global.preserveState) return "";
 var bs;
-var commands =  new J.util.SB ();
+var commands =  new JU.SB ();
 for (var type = 0; type < 14; type++) if (taintWhat < 0 || type == taintWhat) if ((bs = (bsSelected != null ? bsSelected : this.viewer.getTaintedAtoms (type))) != null) this.getAtomicPropertyStateBuffer (commands, type, bs, null, null);
 
 return commands.toString ();
-}, "~N,J.util.BS");
-Clazz.overrideMethod (c$, "getAtomicPropertyStateBuffer", 
+}, "~N,JU.BS");
+$_V(c$, "getAtomicPropertyStateBuffer", 
 function (commands, type, bs, label, fData) {
 if (!this.viewer.global.preserveState) return;
-var s =  new J.util.SB ();
+var s =  new JU.SB ();
 var dataLabel = (label == null ? J.modelset.AtomCollection.userSettableValues[type] : label) + " set";
 var n = 0;
 var isDefault = (type == 2);
@@ -1010,7 +999,7 @@ s.appendF (atoms[i].x).append (" ").appendF (atoms[i].y).append (" ").appendF (a
 break;
 case 12:
 var v = atoms[i].getVibrationVector ();
-if (v == null) v =  new J.util.V3 ();
+if (v == null) v =  new JU.V3 ();
 s.appendF (v.x).append (" ").appendF (v.y).append (" ").appendF (v.z);
 break;
 case 3:
@@ -1046,16 +1035,16 @@ if (isDefault) dataLabel += "(default)";
 commands.append ("\n  DATA \"" + dataLabel + "\"\n").appendI (n).append (" ;\nJmol Property Data Format 1 -- Jmol ").append (J.viewer.Viewer.getJmolVersion ()).append (";\n");
 commands.appendSB (s);
 commands.append ("  end \"" + dataLabel + "\";\n");
-}, "J.util.SB,~N,J.util.BS,~S,~A");
-Clazz.overrideMethod (c$, "getAtomDefs", 
+}, "JU.SB,~N,JU.BS,~S,~A");
+$_V(c$, "getAtomDefs", 
 function (names) {
-var sb =  new J.util.SB ();
+var sb =  new JU.SB ();
 for (var e, $e = names.entrySet ().iterator (); $e.hasNext () && ((e = $e.next ()) || true);) {
-if (Clazz.instanceOf (e.getValue (), J.util.BS)) sb.append ("{" + e.getKey () + "} <" + (e.getValue ()).cardinality () + " atoms>\n");
+if (Clazz.instanceOf (e.getValue (), JU.BS)) sb.append ("{" + e.getKey () + "} <" + (e.getValue ()).cardinality () + " atoms>\n");
 }
 return sb.append ("\n").toString ();
 }, "java.util.Map");
-Clazz.overrideMethod (c$, "undoMoveAction", 
+$_V(c$, "undoMoveAction", 
 function (action, n) {
 switch (action) {
 case 4165:
@@ -1077,7 +1066,7 @@ for (var i = 0; i < n; i++) this.undoMoveActionClear (0, action, true);
 break;
 }
 }, "~N,~N");
-Clazz.overrideMethod (c$, "undoMoveActionClear", 
+$_V(c$, "undoMoveActionClear", 
 function (taintedAtom, type, clearRedo) {
 if (!this.viewer.global.preserveState) return;
 var modelIndex = (taintedAtom >= 0 ? this.viewer.modelSet.atoms[taintedAtom].modelIndex : this.viewer.modelSet.modelCount - 1);
@@ -1106,8 +1095,8 @@ list2.add (0, list1.remove (0));
 s = this.viewer.actionStatesRedo.get (0);
 if (type == 4165 && list2.size () == 1) {
 var pt = [1];
-type = J.util.Parser.parseIntNext (s, pt);
-taintedAtom = J.util.Parser.parseIntNext (s, pt);
+type = JU.PT.parseIntNext (s, pt);
+taintedAtom = JU.PT.parseIntNext (s, pt);
 this.undoMoveActionClear (taintedAtom, type, false);
 }if (this.viewer.modelSet.models[modelIndex].isModelkit () || s.indexOf ("zap ") < 0) {
 if (J.util.Logger.debugging) this.viewer.log (s);
@@ -1119,7 +1108,7 @@ default:
 if (this.undoWorking && clearRedo) return;
 this.undoWorking = true;
 var bs;
-var sb =  new J.util.SB ();
+var sb =  new JU.SB ();
 sb.append ("#" + type + " " + taintedAtom + " " + ( new java.util.Date ()) + "\n");
 if (taintedAtom >= 0) {
 bs = this.viewer.getModelUndeletedAtomsBitSet (modelIndex);
@@ -1129,7 +1118,7 @@ sb.append (this.getAtomicPropertyState (-1, null));
 bs = this.viewer.getModelUndeletedAtomsBitSet (modelIndex);
 sb.append ("zap ");
 sb.append (J.util.Escape.eBS (bs)).append (";");
-J.viewer.DataManager.getInlineData (sb, this.viewer.getModelExtract (bs, false, true, "MOL"), true, null);
+this.getInlineData (sb, this.viewer.getModelExtract (bs, false, true, "MOL"), true, null);
 sb.append ("set refreshing false;").append (this.viewer.actionManager.getPickingState ()).append (this.viewer.transformManager.getMoveToText (0, false)).append ("set refreshing true;");
 }if (clearRedo) {
 this.viewer.actionStates.add (0, sb.toString ());
@@ -1141,7 +1130,7 @@ this.viewer.actionStates.remove (99);
 }}
 this.undoWorking = !clearRedo;
 }, "~N,~N,~B");
-Clazz.overrideMethod (c$, "syncScript", 
+$_V(c$, "syncScript", 
 function (script, applet, port) {
 var sm = this.viewer.statusManager;
 if ("GET_GRAPHICS".equalsIgnoreCase (script)) {
@@ -1174,19 +1163,19 @@ if (disableSend) sm.setSyncDriver (3);
 if (script.indexOf ("Mouse: ") != 0) {
 if (script.startsWith ("Peaks: [")) {
 var list = J.util.Escape.unescapeStringArray (script.substring (7));
-var peaks =  new J.util.JmolList ();
+var peaks =  new JU.List ();
 for (var i = 0; i < list.length; i++) peaks.addLast (list[i]);
 
 this.viewer.getModelSet ().setModelAuxiliaryInfo (this.viewer.getCurrentModelIndex (), "jdxAtomSelect_1HNMR", peaks);
 return;
 }if (script.startsWith ("Select: ")) {
-var filename = J.util.Parser.getQuotedAttribute (script, "file");
+var filename = JU.PT.getQuotedAttribute (script, "file");
 if (filename.startsWith (J.viewer.StateCreator.SIMULATION_PROTOCOL + "MOL=")) filename = null;
-var modelID = J.util.Parser.getQuotedAttribute (script, "model");
-var baseModel = J.util.Parser.getQuotedAttribute (script, "baseModel");
-var atoms = J.util.Parser.getQuotedAttribute (script, "atoms");
-var select = J.util.Parser.getQuotedAttribute (script, "select");
-var script2 = J.util.Parser.getQuotedAttribute (script, "script");
+var modelID = JU.PT.getQuotedAttribute (script, "model");
+var baseModel = JU.PT.getQuotedAttribute (script, "baseModel");
+var atoms = JU.PT.getQuotedAttribute (script, "atoms");
+var select = JU.PT.getQuotedAttribute (script, "select");
+var script2 = JU.PT.getQuotedAttribute (script, "script");
 var isNIH = (modelID != null && modelID.startsWith ("$"));
 if (isNIH) filename = this.viewer.setLoadFormat (modelID, '$', false);
 var id = (modelID == null ? null : (filename == null ? "" : filename + "#") + modelID);
@@ -1194,12 +1183,12 @@ if ("".equals (baseModel)) id += ".baseModel";
 var modelIndex = (id == null ? -3 : this.viewer.getModelIndexFromId (id));
 if (modelIndex == -2) return;
 script = (modelIndex == -1 && filename != null ? script = "load " + J.util.Escape.eS (filename) : "");
-script = J.util.TextFormat.simpleReplace (script, J.viewer.StateCreator.SIMULATION_PROTOCOL, "");
+script = JU.PT.simpleReplace (script, J.viewer.StateCreator.SIMULATION_PROTOCOL, "");
 if (id != null) script += ";model " + J.util.Escape.eS (id);
-if (atoms != null) script += ";select visible & (@" + J.util.TextFormat.simpleReplace (atoms, ",", " or @") + ")";
+if (atoms != null) script += ";select visible & (@" + JU.PT.simpleReplace (atoms, ",", " or @") + ")";
  else if (select != null) script += ";select visible & (" + select + ")";
 if (script2 != null) script += ";" + script2;
-} else if (script.toLowerCase ().startsWith ("jspecview")) {
+} else if (script.toUpperCase ().startsWith ("JSPECVIEW")) {
 if (!disableSend) sm.syncSend (this.viewer.fullName + "JSpecView" + script.substring (9), ">", 0);
 return;
 }this.viewer.evalStringQuietSync (script, true, false);
@@ -1207,9 +1196,9 @@ return;
 }this.mouseScript (script);
 if (disableSend) this.viewer.setSyncDriver (4);
 }, "~S,~S,~N");
-Clazz.overrideMethod (c$, "mouseScript", 
+$_V(c$, "mouseScript", 
 function (script) {
-var tokens = J.util.Parser.getTokens (script);
+var tokens = JU.PT.getTokens (script);
 var key = tokens[1];
 try {
 key = (key.toLowerCase () + "...............").substring (0, 15);
@@ -1217,43 +1206,43 @@ switch (("zoombyfactor...zoomby.........rotatezby......rotatexyby.....translatex
 case 0:
 switch (tokens.length) {
 case 3:
-this.viewer.zoomByFactor (J.util.Parser.parseFloatStr (tokens[2]), 2147483647, 2147483647);
+this.viewer.zoomByFactor (JU.PT.parseFloat (tokens[2]), 2147483647, 2147483647);
 return;
 case 5:
-this.viewer.zoomByFactor (J.util.Parser.parseFloatStr (tokens[2]), J.util.Parser.parseInt (tokens[3]), J.util.Parser.parseInt (tokens[4]));
+this.viewer.zoomByFactor (JU.PT.parseFloat (tokens[2]), JU.PT.parseInt (tokens[3]), JU.PT.parseInt (tokens[4]));
 return;
 }
 break;
 case 15:
 switch (tokens.length) {
 case 3:
-this.viewer.zoomBy (J.util.Parser.parseInt (tokens[2]));
+this.viewer.zoomBy (JU.PT.parseInt (tokens[2]));
 return;
 }
 break;
 case 30:
 switch (tokens.length) {
 case 3:
-this.viewer.rotateZBy (J.util.Parser.parseInt (tokens[2]), 2147483647, 2147483647);
+this.viewer.rotateZBy (JU.PT.parseInt (tokens[2]), 2147483647, 2147483647);
 return;
 case 5:
-this.viewer.rotateZBy (J.util.Parser.parseInt (tokens[2]), J.util.Parser.parseInt (tokens[3]), J.util.Parser.parseInt (tokens[4]));
+this.viewer.rotateZBy (JU.PT.parseInt (tokens[2]), JU.PT.parseInt (tokens[3]), JU.PT.parseInt (tokens[4]));
 }
 break;
 case 45:
-this.viewer.rotateXYBy (J.util.Parser.parseFloatStr (tokens[2]), J.util.Parser.parseFloatStr (tokens[3]));
+this.viewer.rotateXYBy (JU.PT.parseFloat (tokens[2]), JU.PT.parseFloat (tokens[3]));
 return;
 case 60:
-this.viewer.translateXYBy (J.util.Parser.parseInt (tokens[2]), J.util.Parser.parseInt (tokens[3]));
+this.viewer.translateXYBy (JU.PT.parseInt (tokens[2]), JU.PT.parseInt (tokens[3]));
 return;
 case 75:
-this.viewer.rotateSelected (J.util.Parser.parseFloatStr (tokens[2]), J.util.Parser.parseFloatStr (tokens[3]), null);
+this.viewer.rotateSelected (JU.PT.parseFloat (tokens[2]), JU.PT.parseFloat (tokens[3]), null);
 return;
 case 90:
-this.viewer.spinXYBy (J.util.Parser.parseInt (tokens[2]), J.util.Parser.parseInt (tokens[3]), J.util.Parser.parseFloatStr (tokens[4]));
+this.viewer.spinXYBy (JU.PT.parseInt (tokens[2]), JU.PT.parseInt (tokens[3]), JU.PT.parseFloat (tokens[4]));
 return;
 case 105:
-this.viewer.rotateArcBall (J.util.Parser.parseInt (tokens[2]), J.util.Parser.parseInt (tokens[3]), J.util.Parser.parseFloatStr (tokens[4]));
+this.viewer.rotateArcBall (JU.PT.parseInt (tokens[2]), JU.PT.parseInt (tokens[3]), JU.PT.parseFloat (tokens[4]));
 return;
 }
 } catch (e) {

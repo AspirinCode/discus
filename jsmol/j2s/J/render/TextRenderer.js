@@ -48,7 +48,7 @@ if (doPointer) {
 g3d.setColix (pointerColix);
 if (xOffset > 0) g3d.drawLineXYZ (x0, y0, zSlab, Clazz.floatToInt (x), Clazz.floatToInt (y + boxHeight / 2), zSlab);
  else if (xOffset < 0) g3d.drawLineXYZ (x0, y0, zSlab, Clazz.floatToInt (x + boxWidth), Clazz.floatToInt (y + boxHeight / 2), zSlab);
-}}, "J.api.JmolRendererInterface,J.util.JmolFont,~S,~N,~N,~A,~N,~N,~N,~N,~N,~N,~B,~N,~B");
+}}, "J.api.JmolRendererInterface,javajs.awt.Font,~S,~N,~N,~A,~N,~N,~N,~N,~N,~N,~B,~N,~B");
 c$.showBox = $_M(c$, "showBox", 
 ($fz = function (g3d, colix, x, y, z, zSlab, boxWidth, boxHeight, imageFontScaling, atomBased) {
 g3d.fillRect (x, y, z, zSlab, boxWidth, boxHeight);

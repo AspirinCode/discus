@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.adapter.readers.xtal");
-Clazz.load (["J.adapter.smarter.AtomSetCollectionReader"], "J.adapter.readers.xtal.AbinitReader", ["J.util.TextFormat"], function () {
+Clazz.load (["J.adapter.smarter.AtomSetCollectionReader"], "J.adapter.readers.xtal.AbinitReader", ["JU.PT"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.cellLattice = null;
 this.atomList = null;
@@ -8,12 +8,12 @@ this.nType = 0;
 this.typeArray = null;
 Clazz.instantialize (this, arguments);
 }, J.adapter.readers.xtal, "AbinitReader", J.adapter.smarter.AtomSetCollectionReader);
-Clazz.overrideMethod (c$, "initializeReader", 
+$_V(c$, "initializeReader", 
 function () {
 this.setSpaceGroupName ("P1");
 this.doApplySymmetry = true;
 });
-Clazz.overrideMethod (c$, "checkLine", 
+$_V(c$, "checkLine", 
 function () {
 if (this.line.contains ("natom")) {
 this.readNoatom ();
@@ -47,8 +47,8 @@ this.typeArray =  Clazz.newIntArray (this.nAtom, 0);
 var i = 0;
 while (this.line != null && this.line.indexOf ("wtk") < 0) {
 var tmp = this.line;
-if (this.line.contains ("type")) tmp = J.util.TextFormat.simpleReplace (tmp, "type", "");
-if (this.line.contains ("typat")) tmp = J.util.TextFormat.simpleReplace (tmp, "typat", "");
+if (this.line.contains ("type")) tmp = JU.PT.simpleReplace (tmp, "type", "");
+if (this.line.contains ("typat")) tmp = JU.PT.simpleReplace (tmp, "typat", "");
 var tokens = J.adapter.smarter.AtomSetCollectionReader.getTokensStr (tmp);
 for (var j = 0; j < tokens.length; j++) {
 this.typeArray[i] = this.parseIntStr (tokens[j]);
@@ -66,7 +66,7 @@ var pseudoType = this.parseIntStr (pseudo[4]);
 for (var i = 0; i < this.nType; i++) {
 var tokenIndex = 0;
 this.discardLinesUntilContains ("zion");
-var tmp = J.util.TextFormat.simpleReplace (this.line, ".", " ");
+var tmp = JU.PT.simpleReplace (this.line, ".", " ");
 var tokens = J.adapter.smarter.AtomSetCollectionReader.getTokensStr (tmp);
 if (tokens[0] === "-") tokenIndex = 1;
 var atomicNo = this.parseIntStr (tokens[tokenIndex]);
@@ -86,7 +86,7 @@ var data = "";
 var counter = 0;
 while (this.readLine () != null && this.line.indexOf ("Unit cell volume") < 0) {
 data = this.line;
-data = J.util.TextFormat.simpleReplace (data, "=", "= ");
+data = JU.PT.simpleReplace (data, "=", "= ");
 var tokens = J.adapter.smarter.AtomSetCollectionReader.getTokensStr (data);
 this.cellLattice[counter++] = this.parseFloatStr (tokens[1]) * 0.5291772;
 this.cellLattice[counter++] = this.parseFloatStr (tokens[2]) * 0.5291772;
@@ -108,7 +108,7 @@ while (this.readLine () != null && this.line.contains ("znucl")) {
 var atom = this.atomSetCollection.addNewAtom ();
 atom.atomName = this.atomList[count++];
 data = this.line;
-if (data.contains ("xred")) J.util.TextFormat.simpleReplace (data, "xred", "");
+if (data.contains ("xred")) JU.PT.simpleReplace (data, "xred", "");
 var tokens = J.adapter.smarter.AtomSetCollectionReader.getTokensStr (data);
 var x = this.parseFloatStr (tokens[0]);
 var y = this.parseFloatStr (tokens[1]);

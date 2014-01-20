@@ -1,18 +1,18 @@
 Clazz.declarePackage ("J.io2");
-Clazz.load (["J.api.JmolZipUtility"], "J.io2.ZipUtil", ["java.io.BufferedInputStream", "$.BufferedReader", "$.ByteArrayInputStream", "$.StringReader", "java.lang.Character", "java.util.Hashtable", "$.StringTokenizer", "java.util.zip.CRC32", "$.GZIPInputStream", "$.ZipEntry", "$.ZipInputStream", "J.adapter.smarter.AtomSetCollection", "J.api.Interface", "J.io.JmolBinary", "J.io2.JmolZipInputStream", "J.util.Escape", "$.JmolList", "$.Logger", "$.SB", "$.TextFormat"], function () {
+Clazz.load (["J.api.JmolZipUtility"], "J.io2.ZipUtil", ["java.io.BufferedInputStream", "$.BufferedReader", "java.lang.Character", "java.util.Hashtable", "$.StringTokenizer", "java.util.zip.CRC32", "$.GZIPInputStream", "$.ZipEntry", "$.ZipInputStream", "javajs.api.ZInputStream", "JU.List", "$.PT", "$.SB", "J.adapter.smarter.AtomSetCollection", "J.api.Interface", "J.io.JmolBinary", "J.io2.JmolZipInputStream", "J.util.Escape", "$.Logger", "$.Txt"], function () {
 c$ = Clazz.declareType (J.io2, "ZipUtil", null, J.api.JmolZipUtility);
 Clazz.makeConstructor (c$, 
 function () {
 });
-Clazz.overrideMethod (c$, "newZipInputStream", 
+$_V(c$, "newZipInputStream", 
 function (is) {
 return J.io2.ZipUtil.newZIS (is);
 }, "java.io.InputStream");
 c$.newZIS = $_M(c$, "newZIS", 
 ($fz = function (is) {
-return (Clazz.instanceOf (is, J.api.ZInputStream) ? is : Clazz.instanceOf (is, java.io.BufferedInputStream) ?  new J.io2.JmolZipInputStream (is) :  new J.io2.JmolZipInputStream ( new java.io.BufferedInputStream (is)));
+return (Clazz.instanceOf (is, javajs.api.ZInputStream) ? is : Clazz.instanceOf (is, java.io.BufferedInputStream) ?  new J.io2.JmolZipInputStream (is) :  new J.io2.JmolZipInputStream ( new java.io.BufferedInputStream (is)));
 }, $fz.isPrivate = true, $fz), "java.io.InputStream");
-Clazz.overrideMethod (c$, "getAllZipData", 
+$_V(c$, "getAllZipData", 
 function (is, subfileList, name0, binaryFileList, fileData) {
 J.io2.ZipUtil.getAllZipDataStatic (is, subfileList, name0, binaryFileList, fileData);
 }, "java.io.InputStream,~A,~S,~S,java.util.Map");
@@ -20,9 +20,9 @@ c$.getAllZipDataStatic = $_M(c$, "getAllZipDataStatic",
 ($fz = function (is, subfileList, name0, binaryFileList, fileData) {
 var zis = J.io2.ZipUtil.newZIS (is);
 var ze;
-var listing =  new J.util.SB ();
+var listing =  new JU.SB ();
 binaryFileList = "|" + binaryFileList + "|";
-var prefix = J.util.TextFormat.join (subfileList, '/', 1);
+var prefix = J.util.Txt.join (subfileList, '/', 1);
 var prefixd = null;
 if (prefix != null) {
 prefixd = prefix.substring (0, prefix.indexOf ("/") + 1);
@@ -54,12 +54,12 @@ fileData.put ("#Directory_Listing", listing.toString ());
 }, $fz.isPrivate = true, $fz), "java.io.InputStream,~A,~S,~S,java.util.Map");
 c$.getBinaryStringForBytes = $_M(c$, "getBinaryStringForBytes", 
 ($fz = function (bytes) {
-var ret =  new J.util.SB ();
+var ret =  new JU.SB ();
 for (var i = 0; i < bytes.length; i++) ret.append (Integer.toHexString (bytes[i] & 0xFF)).appendC (' ');
 
 return ret.toString ();
 }, $fz.isPrivate = true, $fz), "~A");
-Clazz.overrideMethod (c$, "getZipFileContents", 
+$_V(c$, "getZipFileContents", 
 function (bis, list, listPtr, asBufferedInputStream) {
 var ret;
 if (list == null || listPtr >= list.length) return this.getZipDirectoryAsStringAndClose (bis);
@@ -69,39 +69,39 @@ var ze;
 try {
 var isAll = (fileName.equals ("."));
 if (isAll || fileName.lastIndexOf ("/") == fileName.length - 1) {
-ret =  new J.util.SB ();
+ret =  new JU.SB ();
 while ((ze = zis.getNextEntry ()) != null) {
 var name = ze.getName ();
 if (isAll || name.startsWith (fileName)) ret.append (name).appendC ('\n');
 }
 var str = ret.toString ();
-if (asBufferedInputStream) return  new java.io.BufferedInputStream ( new java.io.ByteArrayInputStream (str.getBytes ()));
-return str;
-}var asBinaryString = false;
-if (fileName.indexOf (":asBinaryString") > 0) {
-fileName = fileName.substring (0, fileName.indexOf (":asBinaryString"));
-asBinaryString = true;
-}while ((ze = zis.getNextEntry ()) != null) {
-if (!fileName.equals (ze.getName ())) continue;
-var bytes = J.io.JmolBinary.getStreamBytes (zis, ze.getSize ());
-if (J.io.JmolBinary.isZipB (bytes)) return this.getZipFileContents ( new java.io.BufferedInputStream ( new java.io.ByteArrayInputStream (bytes)), list, ++listPtr, asBufferedInputStream);
-if (asBufferedInputStream) return  new java.io.BufferedInputStream ( new java.io.ByteArrayInputStream (bytes));
+return (asBufferedInputStream ? J.io.JmolBinary.getBIS (str.getBytes ()) : str);
+}var pt = fileName.indexOf (":asBinaryString");
+var asBinaryString = (pt > 0);
+if (asBinaryString) fileName = fileName.substring (0, pt);
+while ((ze = zis.getNextEntry ()) != null && !fileName.equals (ze.getName ())) {
+}
+var bytes = (ze == null ? null : J.io.JmolBinary.getStreamBytes (zis, ze.getSize ()));
+ze = null;
+zis.close ();
+if (bytes == null) return "";
+if (J.io.JmolBinary.isZipB (bytes)) return this.getZipFileContents (J.io.JmolBinary.getBIS (bytes), list, ++listPtr, asBufferedInputStream);
+if (asBufferedInputStream) return J.io.JmolBinary.getBIS (bytes);
 if (asBinaryString) {
-ret =  new J.util.SB ();
+ret =  new JU.SB ();
 for (var i = 0; i < bytes.length; i++) ret.append (Integer.toHexString (bytes[i] & 0xFF)).appendC (' ');
 
 return ret.toString ();
 }return J.io.JmolBinary.fixUTF (bytes);
-}
 } catch (e) {
 if (Clazz.exceptionOf (e, Exception)) {
+return "";
 } else {
 throw e;
 }
 }
-return "";
 }, "java.io.BufferedInputStream,~A,~N,~B");
-Clazz.overrideMethod (c$, "getZipFileContentsAsBytes", 
+$_V(c$, "getZipFileContentsAsBytes", 
 function (bis, list, listPtr) {
 var ret =  Clazz.newByteArray (0, 0);
 var fileName = list[listPtr];
@@ -113,8 +113,7 @@ var ze;
 while ((ze = zis.getNextEntry ()) != null) {
 if (!fileName.equals (ze.getName ())) continue;
 var bytes = J.io.JmolBinary.getStreamBytes (zis, ze.getSize ());
-if (J.io.JmolBinary.isZipB (bytes) && ++listPtr < list.length) return this.getZipFileContentsAsBytes ( new java.io.BufferedInputStream ( new java.io.ByteArrayInputStream (bytes)), list, listPtr);
-return bytes;
+return (J.io.JmolBinary.isZipB (bytes) && ++listPtr < list.length ? this.getZipFileContentsAsBytes (J.io.JmolBinary.getBIS (bytes), list, listPtr) : bytes);
 }
 } catch (e) {
 if (Clazz.exceptionOf (e, Exception)) {
@@ -124,9 +123,9 @@ throw e;
 }
 return ret;
 }, "java.io.BufferedInputStream,~A,~N");
-Clazz.overrideMethod (c$, "getZipDirectoryAsStringAndClose", 
+$_V(c$, "getZipDirectoryAsStringAndClose", 
 function (bis) {
-var sb =  new J.util.SB ();
+var sb =  new JU.SB ();
 var s =  new Array (0);
 try {
 s = this.getZipDirectoryOrErrorAndClose (bis, false);
@@ -142,7 +141,7 @@ for (var i = 0; i < s.length; i++) sb.append (s[i]).appendC ('\n');
 
 return sb.toString ();
 }, "java.io.BufferedInputStream");
-Clazz.overrideMethod (c$, "getZipDirectoryAndClose", 
+$_V(c$, "getZipDirectoryAndClose", 
 function (bis, addManifest) {
 var s =  new Array (0);
 try {
@@ -160,32 +159,32 @@ return s;
 $_M(c$, "getZipDirectoryOrErrorAndClose", 
 ($fz = function (bis, addManifest) {
 bis = J.io.JmolBinary.checkPngZipStream (bis);
-var v =  new J.util.JmolList ();
+var v =  new JU.List ();
 var zis =  new java.util.zip.ZipInputStream (bis);
 var ze;
 var manifest = null;
 while ((ze = zis.getNextEntry ()) != null) {
 var fileName = ze.getName ();
-if (addManifest && J.io2.ZipUtil.isJmolManifest (fileName)) manifest = J.io2.ZipUtil.getZipEntryAsString (zis);
+if (addManifest && J.io2.ZipUtil.isJmolManifest (fileName)) manifest = J.io2.ZipUtil.getStreamAsString (zis);
  else if (!fileName.startsWith ("__MACOS")) v.addLast (fileName);
 }
 zis.close ();
 if (addManifest) v.add (0, manifest == null ? "" : manifest + "\n############\n");
 return v.toArray ( new Array (v.size ()));
 }, $fz.isPrivate = true, $fz), "java.io.BufferedInputStream,~B");
-c$.getZipEntryAsString = $_M(c$, "getZipEntryAsString", 
-($fz = function (is) {
+c$.getStreamAsString = $_M(c$, "getStreamAsString", 
+function (is) {
 return J.io.JmolBinary.fixUTF (J.io.JmolBinary.getStreamBytes (is, -1));
-}, $fz.isPrivate = true, $fz), "java.io.InputStream");
+}, "java.io.InputStream");
 c$.isJmolManifest = $_M(c$, "isJmolManifest", 
 ($fz = function (thisEntry) {
 return thisEntry.startsWith ("JmolManifest");
 }, $fz.isPrivate = true, $fz), "~S");
-Clazz.overrideMethod (c$, "cacheZipContents", 
+$_V(c$, "cacheZipContents", 
 function (bis, fileName, cache) {
 var zis = this.newZipInputStream (bis);
 var ze;
-var listing =  new J.util.SB ();
+var listing =  new JU.SB ();
 var n = 0;
 try {
 while ((ze = zis.getNextEntry ()) != null) {
@@ -216,36 +215,10 @@ if (n == 0) return null;
 J.util.Logger.info ("ZipUtil cached " + n + " bytes from " + fileName);
 return listing.toString ();
 }, "java.io.BufferedInputStream,~S,java.util.Map");
-Clazz.overrideMethod (c$, "getGzippedBytesAsString", 
-function (bytes) {
-return J.io2.ZipUtil.staticGetGzippedBytesAsString (bytes);
-}, "~A");
-c$.staticGetGzippedBytesAsString = $_M(c$, "staticGetGzippedBytesAsString", 
+c$.getUnGzippedInputStream = $_M(c$, "getUnGzippedInputStream", 
 function (bytes) {
 try {
-var is =  new java.io.ByteArrayInputStream (bytes);
-do {
-is =  new java.io.BufferedInputStream ( new java.util.zip.GZIPInputStream (is, 512));
-} while (J.io.JmolBinary.isGzipS (is));
-var s = J.io2.ZipUtil.getZipEntryAsString (is);
-is.close ();
-return s;
-} catch (e) {
-if (Clazz.exceptionOf (e, Exception)) {
-return "";
-} else {
-throw e;
-}
-}
-}, "~A");
-$_M(c$, "getUnGzippedInputStream", 
-function (bytes) {
-try {
-var is =  new java.io.ByteArrayInputStream (bytes);
-do {
-is =  new java.io.BufferedInputStream ( new java.util.zip.GZIPInputStream (is, 512));
-} while (J.io.JmolBinary.isGzipS (is));
-return is;
+return J.io.JmolBinary.getUnzippedInputStream (J.io.JmolBinary.getBIS (bytes));
 } catch (e) {
 if (Clazz.exceptionOf (e, Exception)) {
 return null;
@@ -254,11 +227,11 @@ throw e;
 }
 }
 }, "~A");
-Clazz.overrideMethod (c$, "newGZIPInputStream", 
-function (bis) {
-return  new java.util.zip.GZIPInputStream (bis, 512);
-}, "java.io.BufferedInputStream");
-Clazz.overrideMethod (c$, "getAtomSetCollectionOrBufferedReaderFromZip", 
+$_V(c$, "newGZIPInputStream", 
+function (is) {
+return  new java.io.BufferedInputStream ( new java.util.zip.GZIPInputStream (is, 512));
+}, "java.io.InputStream");
+$_V(c$, "getAtomSetCollectionOrBufferedReaderFromZip", 
 function (adapter, is, fileName, zipDirectory, htParams, subFilePtr, asBufferedReader) {
 var doCombine = (subFilePtr == 1);
 htParams.put ("zipSet", fileName);
@@ -283,7 +256,7 @@ if (selectAll || subFileName != null) haveManifest = false;
 if (useFileManifest && haveManifest) {
 var path = J.io.JmolBinary.getManifestScriptPath (manifest);
 if (path != null) return "NOTE: file recognized as a script file: " + fileName + path + "\n";
-}var vCollections =  new J.util.JmolList ();
+}var vCollections =  new JU.List ();
 var htCollections = (haveManifest ?  new java.util.Hashtable () : null);
 var nFiles = 0;
 var ret = J.io2.ZipUtil.checkSpecialData (is, zipDirectory);
@@ -291,10 +264,9 @@ if (Clazz.instanceOf (ret, String)) return ret;
 var data = ret;
 try {
 if (data != null) {
-var reader =  new java.io.BufferedReader ( new java.io.StringReader (data.toString ()));
-if (asBufferedReader) {
-return reader;
-}ret = adapter.getAtomSetCollectionFromReader (fileName, reader, htParams);
+var reader = J.io.JmolBinary.getBR (data.toString ());
+if (asBufferedReader) return reader;
+ret = adapter.getAtomSetCollectionFromReader (fileName, reader, htParams);
 if (Clazz.instanceOf (ret, String)) return ret;
 if (Clazz.instanceOf (ret, J.adapter.smarter.AtomSetCollection)) {
 var atomSetCollection = ret;
@@ -315,15 +287,16 @@ if (subFileName != null && !thisEntry.equals (subFileName)) continue;
 if (subFileName != null) htParams.put ("subFileName", subFileName);
 if (J.io2.ZipUtil.isJmolManifest (thisEntry) || haveManifest && exceptFiles == manifest.indexOf ("|" + thisEntry + "|") >= 0) continue;
 var bytes = J.io.JmolBinary.getStreamBytes (zis, ze.getSize ());
+if (J.io.JmolBinary.isGzipB (bytes)) bytes = J.io.JmolBinary.getStreamBytes (J.io2.ZipUtil.getUnGzippedInputStream (bytes), -1);
 if (J.io.JmolBinary.isZipB (bytes)) {
-var bis =  new java.io.BufferedInputStream ( new java.io.ByteArrayInputStream (bytes));
+var bis = J.io.JmolBinary.getBIS (bytes);
 var zipDir2 = J.io.JmolBinary.getZipDirectoryAndClose (bis, true);
-bis =  new java.io.BufferedInputStream ( new java.io.ByteArrayInputStream (bytes));
+bis = J.io.JmolBinary.getBIS (bytes);
 var atomSetCollections = this.getAtomSetCollectionOrBufferedReaderFromZip (adapter, bis, fileName + "|" + thisEntry, zipDir2, htParams, ++subFilePtr, asBufferedReader);
 if (Clazz.instanceOf (atomSetCollections, String)) {
 if (ignoreErrors) continue;
 return atomSetCollections;
-} else if (Clazz.instanceOf (atomSetCollections, J.adapter.smarter.AtomSetCollection) || Clazz.instanceOf (atomSetCollections, J.util.JmolList)) {
+} else if (Clazz.instanceOf (atomSetCollections, J.adapter.smarter.AtomSetCollection) || Clazz.instanceOf (atomSetCollections, JU.List)) {
 if (haveManifest && !exceptFiles) htCollections.put (thisEntry, atomSetCollections);
  else vCollections.addLast (atomSetCollections);
 } else if (Clazz.instanceOf (atomSetCollections, java.io.BufferedReader)) {
@@ -333,23 +306,19 @@ return atomSetCollections;
 if (ignoreErrors) continue;
 zis.close ();
 return "unknown zip reader error";
-}} else if (J.io.JmolBinary.isGzipB (bytes)) {
-return this.getUnGzippedInputStream (bytes);
-} else if (J.io.JmolBinary.isPickleB (bytes)) {
-var bis =  new java.io.BufferedInputStream ( new java.io.ByteArrayInputStream (bytes));
+}} else if (J.io.JmolBinary.isPickleB (bytes)) {
+var bis = J.io.JmolBinary.getBIS (bytes);
 if (doCombine) zis.close ();
 return bis;
 } else {
 var sData;
 if (J.io.JmolBinary.isCompoundDocumentB (bytes)) {
 var jd = J.api.Interface.getInterface ("jmol.util.CompoundDocument");
-jd.setStream ( new java.io.BufferedInputStream ( new java.io.ByteArrayInputStream (bytes)), true);
+jd.setStream (J.io.JmolBinary.getBIS (bytes), true);
 sData = jd.getAllDataFiles ("Molecule", "Input").toString ();
-} else if (J.io.JmolBinary.isGzipB (bytes)) {
-sData = J.io.JmolBinary.getGzippedBytesAsString (bytes);
 } else {
 sData = J.io.JmolBinary.fixUTF (bytes);
-}var reader =  new java.io.BufferedReader ( new java.io.StringReader (sData));
+}var reader = J.io.JmolBinary.getBR (sData);
 if (asBufferedReader) {
 if (doCombine) zis.close ();
 return reader;
@@ -369,7 +338,7 @@ return a.errorMessage;
 }}}
 if (doCombine) zis.close ();
 if (haveManifest && !exceptFiles) {
-var list = J.util.TextFormat.split (manifest, '|');
+var list = JU.PT.split (manifest, "|");
 for (var i = 0; i < list.length; i++) {
 var file = list[i];
 if (file.length == 0 || file.indexOf ("#") == 0) continue;
@@ -412,7 +381,7 @@ isSpartan = true;
 break;
 }}
 if (!isSpartan) return null;
-var data =  new J.util.SB ();
+var data =  new JU.SB ();
 data.append ("Zip File Directory: ").append ("\n").append (J.util.Escape.eAS (zipDirectory, true)).append ("\n");
 var fileData =  new java.util.Hashtable ();
 J.io2.ZipUtil.getAllZipDataStatic (is, [], "", "Molecule", fileData);
@@ -428,7 +397,7 @@ if (fileData.containsKey (name)) data.append (fileData.get (name));
 }
 return data;
 }, $fz.isPrivate = true, $fz), "java.io.InputStream,~A");
-Clazz.overrideMethod (c$, "spartanFileList", 
+$_V(c$, "spartanFileList", 
 function (name, type) {
 var dirNums = J.io2.ZipUtil.getSpartanDirs (type);
 if (dirNums.length == 0 && name.endsWith (".spardir.zip") && type.indexOf (".zip|output") >= 0) {
@@ -443,14 +412,14 @@ c$.getSpartanDirs = $_M(c$, "getSpartanDirs",
 ($fz = function (outputFileData) {
 if (outputFileData == null) return [];
 if (outputFileData.startsWith ("java.io.FileNotFoundException") || outputFileData.startsWith ("FILE NOT FOUND") || outputFileData.indexOf ("<html") >= 0) return ["M0001"];
-var v =  new J.util.JmolList ();
+var v =  new JU.List ();
 var token;
 var lasttoken = "";
 try {
 var tokens =  new java.util.StringTokenizer (outputFileData, " \t\r\n");
 while (tokens.hasMoreTokens ()) {
 if ((token = tokens.nextToken ()).equals (")")) v.addLast (lasttoken);
- else if (token.equals ("Start-") && tokens.nextToken ().equals ("Molecule")) v.addLast (J.util.TextFormat.split (tokens.nextToken (), '"')[1]);
+ else if (token.equals ("Start-") && tokens.nextToken ().equals ("Molecule")) v.addLast (JU.PT.split (tokens.nextToken (), "\"")[1]);
 lasttoken = token;
 }
 } catch (e) {
@@ -484,7 +453,7 @@ function (zipDirectory) {
 var name;
 return (zipDirectory.length < 2 ? null : (name = zipDirectory[1]).endsWith (".spardir/") || zipDirectory.length == 2 ? ["", (name.endsWith ("/") ? name.substring (0, name.length - 1) : name)] : null);
 }, "~A");
-Clazz.overrideMethod (c$, "getCachedPngjBytes", 
+$_V(c$, "getCachedPngjBytes", 
 function (fm, pathName) {
 if (pathName.indexOf (".png") < 0) return null;
 J.util.Logger.info ("FileManager checking PNGJ cache for " + pathName);
@@ -503,7 +472,7 @@ return pngjCache.get (shortName);
 J.util.Logger.info ("FileManager using memory cache " + shortName);
 return pngjCache.get (shortName);
 }, "J.viewer.FileManager,~S");
-Clazz.overrideMethod (c$, "cachePngjFile", 
+$_V(c$, "cachePngjFile", 
 function (fm, data) {
 var pngjCache = fm.pngjCache =  new java.util.Hashtable ();
 if (data == null) return false;
@@ -543,20 +512,21 @@ s = pathName.substring (pt, pt1);
 }var pt2 = pathName.lastIndexOf ("|");
 return pathName.substring (0, pt) + s + (pt2 > 0 ? pathName.substring (pt2) : "");
 }, $fz.isPrivate = true, $fz), "~S");
-Clazz.overrideMethod (c$, "addZipEntry", 
+$_V(c$, "addZipEntry", 
 function (zos, fileName) {
 (zos).putNextEntry ( new java.util.zip.ZipEntry (fileName));
 }, "~O,~S");
-Clazz.overrideMethod (c$, "closeZipEntry", 
+$_V(c$, "closeZipEntry", 
 function (zos) {
 (zos).closeEntry ();
 }, "~O");
-Clazz.overrideMethod (c$, "getZipOutputStream", 
+$_V(c$, "getZipOutputStream", 
 function (bos) {
 {
-return J.api.Interface.getInterface("java.util.zip.ZipOutputStream").setZOS(bos);
+return J.api.Interface.getInterface(
+"java.util.zip.ZipOutputStream").setZOS(bos);
 }}, "~O");
-Clazz.overrideMethod (c$, "getCrcValue", 
+$_V(c$, "getCrcValue", 
 function (bytes) {
 var crc =  new java.util.zip.CRC32 ();
 crc.update (bytes, 0, bytes.length);

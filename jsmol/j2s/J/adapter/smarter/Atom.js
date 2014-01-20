@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.adapter.smarter");
-Clazz.load (["J.util.P3"], "J.adapter.smarter.Atom", ["java.lang.Float", "J.util.ArrayUtil", "$.JmolList", "$.V3"], function () {
+Clazz.load (["JU.P3"], "J.adapter.smarter.Atom", ["java.lang.Float", "JU.AU", "$.List", "$.V3"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.atomSetIndex = 0;
 this.index = 0;
@@ -17,7 +17,7 @@ this.radius = NaN;
 this.isHetero = false;
 this.atomSerial = -2147483648;
 this.chainID = 0;
-this.alternateLocationID = '\0';
+this.altLoc = '\0';
 this.group3 = null;
 this.sequenceNumber = -2147483648;
 this.insertionCode = '\0';
@@ -25,11 +25,11 @@ this.anisoBorU = null;
 this.tensors = null;
 this.ignoreSymmetry = false;
 Clazz.instantialize (this, arguments);
-}, J.adapter.smarter, "Atom", J.util.P3, Cloneable);
+}, J.adapter.smarter, "Atom", JU.P3, Cloneable);
 $_M(c$, "addTensor", 
 function (tensor, type, reset) {
 if (tensor == null) return null;
-if (reset || this.tensors == null) this.tensors =  new J.util.JmolList ();
+if (reset || this.tensors == null) this.tensors =  new JU.List ();
 this.tensors.addLast (tensor);
 if (type != null) tensor.setType (type);
 return tensor;
@@ -41,10 +41,10 @@ this.set (NaN, NaN, NaN);
 $_M(c$, "getClone", 
 function () {
 var a = this.clone ();
-if (this.vib != null) a.vib = J.util.V3.newV (a.vib);
-if (this.anisoBorU != null) a.anisoBorU = J.util.ArrayUtil.arrayCopyF (this.anisoBorU, -1);
+if (this.vib != null) a.vib = JU.V3.newV (a.vib);
+if (this.anisoBorU != null) a.anisoBorU = JU.AU.arrayCopyF (this.anisoBorU, -1);
 if (this.tensors != null) {
-a.tensors =  new J.util.JmolList ();
+a.tensors =  new JU.List ();
 for (var i = this.tensors.size (); --i >= 0; ) a.tensors.addLast ((this.tensors.get (i)).copyTensor ());
 
 }return a;

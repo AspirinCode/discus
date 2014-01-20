@@ -8,13 +8,13 @@ Clazz.makeConstructor (c$,
 function () {
 Clazz.superConstructor (this, J.thread.VibrationThread, []);
 });
-Clazz.overrideMethod (c$, "setManager", 
+$_V(c$, "setManager", 
 function (manager, viewer, options) {
 this.transformManager = manager;
 this.setViewer (viewer, "VibrationThread");
 return 0;
 }, "~O,J.viewer.Viewer,~O");
-Clazz.overrideMethod (c$, "run1", 
+$_V(c$, "run1", 
 function (mode) {
 var elapsed;
 while (true) switch (mode) {
@@ -32,11 +32,14 @@ break;
 case 1:
 this.lastRepaintTime = System.currentTimeMillis ();
 elapsed = (this.lastRepaintTime - this.startTime);
+if (this.transformManager.vibrationPeriodMs == 0) {
+mode = -2;
+} else {
 var t = (elapsed % this.transformManager.vibrationPeriodMs) / this.transformManager.vibrationPeriodMs;
 this.transformManager.setVibrationT (t);
 this.viewer.refresh (3, "VibrationThread:run()");
 mode = (this.checkInterrupted () ? -2 : 0);
-break;
+}break;
 case -2:
 this.viewer.startHoverWatcher (true);
 return;

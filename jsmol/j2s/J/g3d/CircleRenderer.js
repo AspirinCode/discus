@@ -11,7 +11,7 @@ Clazz.instantialize (this, arguments);
 Clazz.makeConstructor (c$, 
 function () {
 });
-Clazz.overrideMethod (c$, "set", 
+$_V(c$, "set", 
 function (g3d) {
 try {
 this.g3d = g3d;

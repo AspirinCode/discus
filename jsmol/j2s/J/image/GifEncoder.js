@@ -1,10 +1,16 @@
 Clazz.declarePackage ("J.image");
-Clazz.load (["J.image.ImageEncoder", "J.util.JmolList"], "J.image.GifEncoder", ["java.lang.Boolean", "java.util.Collections", "$.Hashtable", "J.util.Logger"], function () {
+Clazz.load (["JU.List", "J.image.ImageEncoder"], "J.image.GifEncoder", ["java.lang.Boolean", "java.util.Collections", "$.Hashtable", "J.util.Logger"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.colorMap = null;
 this.red = null;
 this.green = null;
 this.blue = null;
+if (!Clazz.isClassDefined ("J.image.GifEncoder.ColorItem")) {
+J.image.GifEncoder.$GifEncoder$ColorItem$ ();
+}
+if (!Clazz.isClassDefined ("J.image.GifEncoder.ColorVector")) {
+J.image.GifEncoder.$GifEncoder$ColorVector$ ();
+}
 if (!Clazz.isClassDefined ("J.image.GifEncoder.AdaptiveColorCollection")) {
 J.image.GifEncoder.$GifEncoder$AdaptiveColorCollection$ ();
 }
@@ -48,7 +54,7 @@ this.codetab =  Clazz.newIntArray (5003, 0);
 this.masks = [0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF];
 this.buf =  Clazz.newByteArray (256, 0);
 });
-Clazz.overrideMethod (c$, "setParams", 
+$_V(c$, "setParams", 
 function (params) {
 this.params = params;
 this.interlaced = Boolean.TRUE === params.get ("interlaced");
@@ -85,7 +91,7 @@ this.addImage = false;
 this.out.cancel();
 }}
 }, "java.util.Map");
-Clazz.overrideMethod (c$, "generate", 
+$_V(c$, "generate", 
 function () {
 if (this.addHeader) this.writeHeader ();
 this.addHeader = false;
@@ -121,7 +127,7 @@ this.colorMap = this.finalizeColorMap (colors, colors256);
 }, $fz.isPrivate = true, $fz));
 $_M(c$, "getColors", 
 ($fz = function () {
-var colorVector =  new J.image.GifEncoder.ColorVector ();
+var colorVector = Clazz.innerTypeInstance (J.image.GifEncoder.ColorVector, this, null);
 var ciHash =  new java.util.Hashtable ();
 var nColors = 0;
 var key;
@@ -138,7 +144,7 @@ transparentRgb = rgb;
 this.pixels[pt] = rgb = transparentRgb;
 }}var item = ciHash.get (key = Integer.$valueOf (rgb));
 if (item == null) {
-item =  new J.image.GifEncoder.ColorItem (rgb, 1);
+item = Clazz.innerTypeInstance (J.image.GifEncoder.ColorItem, this, null, rgb, 1);
 ciHash.put (key, item);
 colorVector.addLast (item);
 nColors++;
@@ -194,7 +200,7 @@ ht.put (Integer.$valueOf (rgb), item.acc);
 for (var acc, $acc = colors256.values ().iterator (); $acc.hasNext () && ((acc = $acc.next ()) || true);) acc.setRgb ();
 
 return ht;
-}, $fz.isPrivate = true, $fz), "J.util.JmolList,java.util.Map");
+}, $fz.isPrivate = true, $fz), "JU.List,java.util.Map");
 $_M(c$, "writeGraphicControlExtension", 
 ($fz = function () {
 if (this.transparentIndex != -1 || this.delayTime100ths >= 0) {
@@ -370,11 +376,54 @@ this.out.write (this.buf, 0, this.bufPt);
 this.byteCount += this.bufPt;
 this.bufPt = 0;
 }});
+c$.$GifEncoder$ColorItem$ = function () {
+Clazz.pu$h ();
+c$ = Clazz.decorateAsClass (function () {
+Clazz.prepareCallback (this, arguments);
+this.acc = null;
+this.rgb = 0;
+this.count = 0;
+Clazz.instantialize (this, arguments);
+}, J.image.GifEncoder, "ColorItem");
+Clazz.makeConstructor (c$, 
+function (a, b) {
+this.rgb = a;
+this.count = b;
+}, "~N,~N");
+c$ = Clazz.p0p ();
+};
+c$.$GifEncoder$ColorVector$ = function () {
+Clazz.pu$h ();
+c$ = Clazz.decorateAsClass (function () {
+Clazz.prepareCallback (this, arguments);
+if (!Clazz.isClassDefined ("J.image.GifEncoder.ColorVector.CountComparator")) {
+J.image.GifEncoder.ColorVector.$GifEncoder$ColorVector$CountComparator$ ();
+}
+Clazz.instantialize (this, arguments);
+}, J.image.GifEncoder, "ColorVector", JU.List);
+$_M(c$, "sort", 
+function () {
+var a = Clazz.innerTypeInstance (J.image.GifEncoder.ColorVector.CountComparator, this, null);
+java.util.Collections.sort (this, a);
+});
+c$.$GifEncoder$ColorVector$CountComparator$ = function () {
+Clazz.pu$h ();
+c$ = Clazz.decorateAsClass (function () {
+Clazz.prepareCallback (this, arguments);
+Clazz.instantialize (this, arguments);
+}, J.image.GifEncoder.ColorVector, "CountComparator", null, java.util.Comparator);
+$_V(c$, "compare", 
+function (a, b) {
+return (a == null ? 1 : b == null ? -1 : a.count < b.count ? -1 : a.count > b.count ? 1 : 0);
+}, "J.image.GifEncoder.ColorItem,J.image.GifEncoder.ColorItem");
+c$ = Clazz.p0p ();
+};
+c$ = Clazz.p0p ();
+};
 c$.$GifEncoder$AdaptiveColorCollection$ = function () {
 Clazz.pu$h ();
 c$ = Clazz.decorateAsClass (function () {
 Clazz.prepareCallback (this, arguments);
-this.rgb = 0;
 this.index = 0;
 this.r = 0;
 this.g = 0;
@@ -384,7 +433,6 @@ Clazz.instantialize (this, arguments);
 }, J.image.GifEncoder, "AdaptiveColorCollection");
 Clazz.makeConstructor (c$, 
 function (a, b) {
-this.rgb = a;
 this.index = b;
 if (a >= 0) this.b$["J.image.GifEncoder"].transparentIndex = b;
 }, "~N,~N");
@@ -403,34 +451,6 @@ this.b$["J.image.GifEncoder"].blue[this.index] = (Clazz.doubleToInt (this.b / th
 });
 c$ = Clazz.p0p ();
 };
-Clazz.pu$h ();
-c$ = Clazz.decorateAsClass (function () {
-this.acc = null;
-this.rgb = 0;
-this.count = 0;
-Clazz.instantialize (this, arguments);
-}, J.image.GifEncoder, "ColorItem");
-Clazz.makeConstructor (c$, 
-function (a, b) {
-this.rgb = a;
-this.count = b;
-}, "~N,~N");
-c$ = Clazz.p0p ();
-Clazz.pu$h ();
-c$ = Clazz.declareType (J.image.GifEncoder, "ColorVector", J.util.JmolList);
-$_M(c$, "sort", 
-function () {
-var a =  new J.image.GifEncoder.ColorVector.CountComparator ();
-java.util.Collections.sort (this, a);
-});
-Clazz.pu$h ();
-c$ = Clazz.declareType (J.image.GifEncoder.ColorVector, "CountComparator", null, java.util.Comparator);
-Clazz.overrideMethod (c$, "compare", 
-function (a, b) {
-return (a == null ? 1 : b == null ? -1 : a.count < b.count ? -1 : a.count > b.count ? 1 : 0);
-}, "J.image.GifEncoder.ColorItem,J.image.GifEncoder.ColorItem");
-c$ = Clazz.p0p ();
-c$ = Clazz.p0p ();
 Clazz.defineStatics (c$,
 "EOF", -1,
 "INTERLACE_PARAMS", [8, 8, 4, 2, 4, 2, 1, 0],

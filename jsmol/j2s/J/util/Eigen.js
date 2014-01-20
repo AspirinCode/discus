@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.util");
-Clazz.load (null, "J.util.Eigen", ["J.util.V3"], function () {
+Clazz.load (null, "J.util.Eigen", ["JU.V3"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.n = 3;
 this.d = null;
@@ -33,7 +33,7 @@ function (eigenVectors, eigenValues) {
 var vectors = this.getEigenvectorsFloatTransposed ();
 var lambdas = this.getRealEigenvalues ();
 for (var i = 0; i < this.n; i++) {
-if (eigenVectors[i] == null) eigenVectors[i] =  new J.util.V3 ();
+if (eigenVectors[i] == null) eigenVectors[i] =  new JU.V3 ();
 eigenVectors[i].setA (vectors[i]);
 eigenValues[i] = lambdas[i];
 }
@@ -72,7 +72,7 @@ $_M(c$, "getEigenVectors3",
 function () {
 var v =  new Array (3);
 for (var i = 0; i < 3; i++) {
-v[i] = J.util.V3.new3 (this.V[0][i], this.V[1][i], this.V[2][i]);
+v[i] = JU.V3.new3 (this.V[0][i], this.V[1][i], this.V[2][i]);
 }
 return v;
 });

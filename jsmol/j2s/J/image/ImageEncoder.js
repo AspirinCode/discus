@@ -10,7 +10,7 @@ this.errRet = null;
 this.pixels = null;
 Clazz.instantialize (this, arguments);
 }, J.image, "ImageEncoder", null, J.api.JmolImageEncoder);
-Clazz.overrideMethod (c$, "createImage", 
+$_V(c$, "createImage", 
 function (apiPlatform, type, objImage, out, params, errRet) {
 this.out = out;
 this.errRet = errRet;
@@ -34,13 +34,13 @@ throw e;
 this.close ();
 }
 return (errRet[0] == null);
-}, "J.api.ApiPlatform,~S,~O,J.io.JmolOutputChannel,java.util.Map,~A");
+}, "javajs.api.GenericPlatform,~S,~O,JU.OC,java.util.Map,~A");
 $_M(c$, "encodeImage", 
 function (apiPlatform, objImage) {
 {
 pixels = null;
 }this.pixels = apiPlatform.grabPixels (objImage, this.width, this.height, this.pixels, 0, this.height);
-}, "J.api.ApiPlatform,~O");
+}, "javajs.api.GenericPlatform,~O");
 $_M(c$, "putString", 
 function (str) {
 this.out.append (str);

@@ -1,7 +1,31 @@
 @source http://chemapps.stolaf.edu/jmol/jsmol
 @author hansonr@stolaf.edu project started 8/26/2012
 
-last revision, 8/17/13
+last revision: 11/26/2013
+
+Language localization in Java applets is now handled in a new way, 
+using jsmol/idioma/*.po files directly instead of a fleet of JAR
+files, as was developed for HTML5. This means that web page developers
+who are being selective about which files to upload should
+upload jsmol/idioma along with jsmol/j2s and/or jsmol/java if they want
+to enable language localization in menus and the conosole. 
+
+JME.jar is not trusted-signed and has been dropped from this distibution.
+  
+revision: 11/23/2013
+
+All Jmol and JSpecView code in JSmol is now signed with a 
+secure code signing certificate in the name of "Integrated Graphics" 
+(Robert M. Hanson DBA Integrated Graphics, registered in the state 
+of Minnesota) by authority of Starfield Technologies/GoDaddy.com.
+
+WHEN RUNNING JMOL/JAVA OR JSPECVIEW/JAVA BE CERTAIN THAT THE 
+WARNING STATES THAT THE ORGANIZATION IS "Integrated Graphics".
+IF IT DOES NOT, THEN IT IS POSSIBLE THAT THE OPEN-SOURCE 
+JMOL PROJECT HAS BEEN COMPROMISED. PLEASE NOTIFY hansonr@stolaf.edu
+IMMEDIATELY IF THIS IS THE CASE AND CONSIDER NOT USING THE APPLET.
+
+revision: 8/17/13 (updated 11/26/2013)
 
 JSmol -- Java(Script) web-based molecular viewer
 
@@ -43,16 +67,17 @@ What's here:
 
 MAIN DIRECTORIES:
 
+idioma/       *.po language localization files for both Java and HTML5.
+
 j2s/          java/       JavaScript versions of Java classes
               J/          JavaScript versions of Jmol classes (org.jmol)
               JZ/         JavaScript versions of JZlib (com.jcraft.jzlib)
               core/       package.js and selected minimized core JS files,
-              trans/      *.po language localization files from src/org/jmol/translation/JmolApplet
               img/        images used in the HTML5 version of JSmol (cover image "play" button) 
             
 java/       Java JAR files for JmolApplet and JSpecView
 
-jme/        JME.jar -- Java Molecular Editor (Peter Ertl) -- see jmetest.htm
+jme/  (not) JME.jar is not trusted-signed and has been dropped from this distibution
 jsme/       JSME files -- JavaScript Molecular Editor (Peter Ertl and Bruno Bienfait) -- see jsmetest.htm
 
 ADDITIONAL DIRECTORIES:
@@ -77,7 +102,7 @@ js/         JSmolXXXX.js JavaScript files that are included in JSmol.min.js
 				JSmolJSV.js
 				JSmolThree.js
 				JSmolTM.js
-            
+
 php/        contains jsmol.php, which is necessary on a server for some browsers
             to access binary files via AJAX.
 
@@ -104,15 +129,6 @@ JSmol.min.nojq.js
 All of the above, but without jquery.js. 
 (You must include jQuery separately.)
 
-JSmol.min.core.js
-============
-
-All of the above, plus core Java files:
-
-   		JSmol.min.js
-   		coretop2.js
-   		j2s/core/core.z.js 
-
 JSmol.lite.js
 ============
 
@@ -123,7 +139,7 @@ A very light-weight non-Jmol model viewer. Just balls and sticks.
   		JSmolCore.js
   		JSmolTM.js
  
- JSmol.lite.nojq.js
+JSmol.lite.nojq.js
 ============
 
 A super light-weight non-Jmol model viewer. Just balls and sticks; no jQuery. 
@@ -199,12 +215,8 @@ depending upon browser capabilities. It is set to use HTML5, but you can change 
 Read the information in the file for details.
 
 It uses the unminimized set of JSmolXXXX.js files
-If you add 
-
-  ?debugcode 
-
-to the URL, it will bypasss j2s/core files and read files
-directly from j2s/J, j2s/com, and j2s/java. Note that in this mode
+test2.htm bypassses j2s/core files and reads files
+directly from j2s/J, and j2s/java. Note that in this mode
 the popup menu and the Jmol console are not available.
 It can uses the signed Jmol applet, the unsigned Jmol applet
 with server-side help, or <a href="jsmol.sourceforge.net">JSmol</a> using 

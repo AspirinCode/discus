@@ -7,7 +7,7 @@ Clazz.instantialize (this, arguments);
 Clazz.prepareFields (c$, function () {
 this.tempXY =  Clazz.newFloatArray (3, 0);
 });
-Clazz.overrideMethod (c$, "render", 
+$_V(c$, "render", 
 function () {
 if (this.viewer.isNavigating ()) return false;
 var hover = this.shape;
@@ -18,7 +18,7 @@ var atom = this.modelSet.atoms[hover.atomIndex];
 var label = (hover.specialLabel != null ? hover.specialLabel : hover.atomFormats != null && hover.atomFormats[hover.atomIndex] != null ? this.viewer.modelSet.getLabeler ().formatLabel (this.viewer, atom, hover.atomFormats[hover.atomIndex]) : hover.labelFormat != null ? this.viewer.modelSet.getLabeler ().formatLabel (this.viewer, atom, this.fixLabel (atom, hover.labelFormat)) : null);
 if (label == null) return false;
 text.setText (label);
-text.setXYZs (atom.screenX, atom.screenY, 1, -2147483648);
+text.setXYZs (atom.sX, atom.sY, 1, -2147483648);
 } else if (hover.text != null) {
 text.setText (hover.text);
 text.setXYZs (hover.xy.x, hover.xy.y, 1, -2147483648);

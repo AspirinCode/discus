@@ -65,7 +65,7 @@ if (xyz == null) this.zSlab = -2147483648;
 if (doAdjust) {
 this.valign = (xyz == null ? 0 : 4);
 this.setAdjustForWindow (xyz == null);
-}}, "J.util.P3,~B");
+}}, "JU.P3,~B");
 $_M(c$, "setAdjustForWindow", 
 function (TF) {
 this.adjustForWindow = TF;
@@ -193,7 +193,7 @@ if (isAntialiased) {
 x <<= 1;
 y <<= 1;
 }return (x >= this.boxX && x <= this.boxX + this.boxWidth && y >= this.boxY && y <= this.boxY + this.boxHeight);
-}, "~B,~N,~N,J.util.BS");
+}, "~B,~N,~N,JU.BS");
 c$.setProperty = $_M(c$, "setProperty", 
 function (propertyName, value, currentObject) {
 if ("script" === propertyName) {

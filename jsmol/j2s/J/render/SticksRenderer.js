@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.render");
-Clazz.load (["J.render.FontLineShapeRenderer", "J.util.BS", "$.P3", "$.V3"], "J.render.SticksRenderer", ["java.lang.Float", "J.constant.EnumPalette", "J.modelset.Bond", "J.util.C", "$.JmolEdge"], function () {
+Clazz.load (["J.render.FontLineShapeRenderer", "JU.BS", "$.P3", "$.V3"], "J.render.SticksRenderer", ["java.lang.Float", "J.constant.EnumPalette", "J.modelset.Bond", "J.util.C", "$.JmolEdge"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.showMultipleBonds = false;
 this.multipleBondSpacing = 0;
@@ -44,14 +44,14 @@ this.dyStep = 0;
 Clazz.instantialize (this, arguments);
 }, J.render, "SticksRenderer", J.render.FontLineShapeRenderer);
 Clazz.prepareFields (c$, function () {
-this.x =  new J.util.V3 ();
-this.y =  new J.util.V3 ();
-this.z =  new J.util.V3 ();
-this.p1 =  new J.util.P3 ();
-this.p2 =  new J.util.P3 ();
-this.bsForPass2 = J.util.BS.newN (64);
+this.x =  new JU.V3 ();
+this.y =  new JU.V3 ();
+this.z =  new JU.V3 ();
+this.p1 =  new JU.P3 ();
+this.p2 =  new JU.P3 ();
+this.bsForPass2 = JU.BS.newN (64);
 });
-Clazz.overrideMethod (c$, "render", 
+$_V(c$, "render", 
 function () {
 var bonds = this.modelSet.bonds;
 if (bonds == null) return false;
@@ -61,10 +61,10 @@ this.slabbing = this.viewer.getSlabEnabled ();
 this.slabByAtom = this.viewer.getBoolean (603979938);
 this.endcaps = 3;
 this.dashDots = (this.viewer.getBoolean (603979889) ? J.render.FontLineShapeRenderer.sixdots : J.render.FontLineShapeRenderer.dashes);
-this.multipleBondSpacing = this.viewer.getFloat (570425369);
+this.multipleBondSpacing = this.viewer.getFloat (570425370);
 this.isCartesianExport = (this.exportType == 1);
 if (this.multipleBondSpacing == 0 && this.isCartesianExport) this.multipleBondSpacing = 0.2;
-this.multipleBondRadiusFactor = this.viewer.getFloat (570425368);
+this.multipleBondRadiusFactor = this.viewer.getFloat (570425369);
 this.modeMultipleBond = this.viewer.getModeMultipleBond ();
 this.showMultipleBonds = (this.multipleBondSpacing != 0 && this.modeMultipleBond != 0 && this.viewer.getBoolean (603979928));
 this.wireframeOnly = !this.viewer.checkMotionRendering (1678770178);
@@ -100,12 +100,12 @@ this.b = this.b.getGroup ().getLeadAtomOr (this.b);
 } else if (this.hbondsBackbone && J.modelset.Bond.isOrderH (order)) {
 this.a = this.a.getGroup ().getLeadAtomOr (this.a);
 this.b = this.b.getGroup ().getLeadAtomOr (this.b);
-}}if (!this.isPass2 && (!this.a.isInFrame () || !this.b.isInFrame () || !this.g3d.isInDisplayRange (this.a.screenX, this.a.screenY) || !this.g3d.isInDisplayRange (this.b.screenX, this.b.screenY) || this.modelSet.isAtomHidden (this.a.getIndex ()) || this.modelSet.isAtomHidden (this.b.getIndex ()))) return false;
+}}if (!this.isPass2 && (!this.a.isInFrame () || !this.b.isInFrame () || !this.g3d.isInDisplayRange (this.a.sX, this.a.sY) || !this.g3d.isInDisplayRange (this.b.sX, this.b.sY) || this.modelSet.isAtomHidden (this.a.getIndex ()) || this.modelSet.isAtomHidden (this.b.getIndex ()))) return false;
 if (this.slabbing) {
-if (this.g3d.isClippedZ (this.a.screenZ) && this.g3d.isClippedZ (this.b.screenZ)) return false;
-if (this.slabByAtom && (this.g3d.isClippedZ (this.a.screenZ) || this.g3d.isClippedZ (this.b.screenZ))) return false;
-}this.zA = this.a.screenZ;
-this.zB = this.b.screenZ;
+if (this.g3d.isClippedZ (this.a.sZ) && this.g3d.isClippedZ (this.b.sZ)) return false;
+if (this.slabByAtom && (this.g3d.isClippedZ (this.a.sZ) || this.g3d.isClippedZ (this.b.sZ))) return false;
+}this.zA = this.a.sZ;
+this.zB = this.b.sZ;
 if (this.zA == 1 || this.zB == 1) return false;
 this.colixA = atomA0.getColix ();
 this.colixB = atomB0.getColix ();
@@ -158,10 +158,10 @@ if (!this.hbondsSolid) mask = -1;
 } else if (this.bondOrder == 32768) {
 this.bondOrder = 1;
 }}
-this.xA = this.a.screenX;
-this.yA = this.a.screenY;
-this.xB = this.b.screenX;
-this.yB = this.b.screenY;
+this.xA = this.a.sX;
+this.yA = this.a.sY;
+this.xB = this.b.sX;
+this.yB = this.b.sY;
 this.mad = this.bond.mad;
 if (this.multipleBondRadiusFactor > 0 && this.bondOrder > 1) this.mad *= this.multipleBondRadiusFactor;
 this.dx = this.xB - this.xA;
@@ -277,8 +277,8 @@ $_M(c$, "getAromaticDottedBondMask",
 ($fz = function () {
 var atomC = this.b.findAromaticNeighbor (this.a.getIndex ());
 if (atomC == null) return 1;
-var dxAC = atomC.screenX - this.xA;
-var dyAC = atomC.screenY - this.yA;
+var dxAC = atomC.sX - this.xA;
+var dyAC = atomC.sY - this.yA;
 return ((this.dx * dyAC - this.dy * dxAC) < 0 ? 2 : 1);
 }, $fz.isPrivate = true, $fz));
 });

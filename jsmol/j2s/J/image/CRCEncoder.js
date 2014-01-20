@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.image");
-Clazz.load (["J.image.ImageEncoder"], "J.image.CRCEncoder", ["java.util.zip.CRC32", "J.util.ArrayUtil"], function () {
+Clazz.load (["J.image.ImageEncoder"], "J.image.CRCEncoder", ["java.util.zip.CRC32", "JU.AU"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.startPos = 0;
 this.bytePos = 0;
@@ -28,7 +28,7 @@ this.startPos = this.bytePos = pt;
 }, "~A,~N");
 $_M(c$, "getBytes", 
 function () {
-return (this.dataLen == this.pngBytes.length ? this.pngBytes : J.util.ArrayUtil.arrayCopyByte (this.pngBytes, this.dataLen));
+return (this.dataLen == this.pngBytes.length ? this.pngBytes : JU.AU.arrayCopyByte (this.pngBytes, this.dataLen));
 });
 $_M(c$, "writeCRC", 
 function () {
@@ -67,7 +67,7 @@ $_M(c$, "writeBytes",
 function (data) {
 var newPos = this.bytePos + data.length;
 this.dataLen = Math.max (this.dataLen, newPos);
-if (newPos > this.pngBytes.length) this.pngBytes = J.util.ArrayUtil.arrayCopyByte (this.pngBytes, newPos + 16);
+if (newPos > this.pngBytes.length) this.pngBytes = JU.AU.arrayCopyByte (this.pngBytes, newPos + 16);
 System.arraycopy (data, 0, this.pngBytes, this.bytePos, data.length);
 this.bytePos = newPos;
 }, "~A");

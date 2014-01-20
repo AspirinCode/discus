@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.viewer");
-Clazz.load (null, "J.viewer.OutputManager", ["java.lang.Boolean", "java.util.Date", "$.Hashtable", "J.api.Interface", "J.i18n.GT", "J.io.JmolBinary", "J.util.Escape", "$.JmolList", "$.Logger", "$.SB", "$.TextFormat", "J.viewer.FileManager", "$.JC", "$.Viewer"], function () {
+Clazz.load (null, "J.viewer.OutputManager", ["java.lang.Boolean", "java.util.Date", "$.Hashtable", "$.Map", "JU.List", "$.PT", "$.SB", "J.api.Interface", "J.i18n.GT", "J.io.JmolBinary", "J.util.Escape", "$.Logger", "$.Txt", "J.viewer.FileManager", "$.JC", "$.Viewer"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.viewer = null;
 this.privateKey = 0;
@@ -68,15 +68,17 @@ if (out == null) return errMsg = "ERROR: canceled";
 fileName = out.getFileName ();
 var comment = null;
 var stateData = null;
-params.put ("date", this.viewer.apiPlatform.getDateFormat ());
+params.put ("date", this.viewer.apiPlatform.getDateFormat (false));
 if (type.startsWith ("JP")) {
-type = J.util.TextFormat.simpleReplace (type, "E", "");
+type = JU.PT.simpleReplace (type, "E", "");
 if (type.equals ("JPG64")) {
 params.put ("outputChannelTemp", this.getOutputChannel (null, null));
 comment = "";
 } else {
 comment = (!asBytes ? this.getWrappedState (null, null, image, null) : "");
-}} else if (type.startsWith ("PNG")) {
+}} else if (type.equals ("PDF")) {
+comment = "";
+} else if (type.startsWith ("PNG")) {
 comment = "";
 var isPngj = type.equals ("PNGJ");
 if (isPngj) {
@@ -123,18 +125,16 @@ J.util.Logger.error ("state could not be saved: " + e.toString ());
 s = "Jmol " + J.viewer.Viewer.getJmolVersion ();
 }
 return s;
-}, "~S,~A,~O,J.io.JmolOutputChannel");
+}, "~S,~A,~O,JU.OC");
 $_M(c$, "createTheImage", 
 ($fz = function (objImage, type, out, params, errRet) {
 type = type.substring (0, 1) + type.substring (1).toLowerCase ();
-{
-if (type == "Pdf") type += ":";
-}var ie = J.api.Interface.getInterface ("J.image." + type + "Encoder");
+var ie = J.api.Interface.getInterface ("J.image." + type + "Encoder");
 if (ie == null) {
 errRet[0] = "Image encoder type " + type + " not available";
 return false;
 }return ie.createImage (this.viewer.apiPlatform, type, objImage, out, params, errRet);
-}, $fz.isPrivate = true, $fz), "~O,~S,J.io.JmolOutputChannel,java.util.Map,~A");
+}, $fz.isPrivate = true, $fz), "~O,~S,JU.OC,java.util.Map,~A");
 $_M(c$, "outputToFile", 
 function (params) {
 return this.handleOutputToFile (params, true);
@@ -182,10 +182,10 @@ var ptDot = fileName.indexOf (".");
 if (ptDot < 0) ptDot = fileName.length;
 var froot = fileName.substring (0, ptDot);
 var fext = fileName.substring (ptDot);
-var sb =  new J.util.SB ();
+var sb =  new JU.SB ();
 if (bsFrames == null) {
 this.viewer.transformManager.vibrationOn = true;
-sb =  new J.util.SB ();
+sb =  new JU.SB ();
 for (var i = 0; i < nVibes; i++) {
 for (var j = 0; j < 20; j++) {
 this.viewer.transformManager.setVibrationT (j / 20 + 0.2501);
@@ -200,7 +200,7 @@ if (!this.writeFrame (++n, froot, fext, params, sb)) return "ERROR WRITING FILE 
 }
 }if (info.length == 0) info = "OK\n";
 return info + "\n" + n + " files created";
-}, $fz.isPrivate = true, $fz), "~S,J.util.BS,~N,java.util.Map");
+}, $fz.isPrivate = true, $fz), "~S,JU.BS,~N,java.util.Map");
 $_M(c$, "setFullPath", 
 ($fz = function (params, fileName) {
 var fullPath = params.get ("fullPath");
@@ -270,7 +270,7 @@ var fullPath =  new Array (1);
 var out = this.getOutputChannel (fileName, fullPath);
 if (out == null) return "";
 fileName = fullPath[0];
-var pathName = (type.equals ("FILE") ? this.viewer.getFullPathName () : null);
+var pathName = (type.equals ("FILE") ? this.viewer.getFullPathName (false) : null);
 var getCurrentFile = (pathName != null && (pathName.equals ("string") || pathName.indexOf ("[]") >= 0 || pathName.equals ("JSNode")));
 var asBytes = (pathName != null && !getCurrentFile);
 if (asBytes) {
@@ -290,7 +290,7 @@ var msg = this.handleOutputToFile (params, false);
 this.viewer.scriptEcho (msg);
 sb.append (msg).append ("\n");
 return msg.startsWith ("OK");
-}, $fz.isPrivate = true, $fz), "~N,~S,~S,java.util.Map,J.util.SB");
+}, $fz.isPrivate = true, $fz), "~N,~S,~S,java.util.Map,JU.SB");
 $_M(c$, "getOutputFileNameFromDialog", 
 ($fz = function (fileName, quality) {
 if (fileName == null || this.viewer.$isKiosk) return null;
@@ -394,7 +394,7 @@ params.put ("captureMode", Integer.$valueOf (captureMode));
 fileName = params.get ("captureFileName");
 msg = type + "_STREAM_" + (captureMode == 1150985 ? "CLOSE " : "CANCEL ") + params.get ("captureFileName");
 this.viewer.captureParams = null;
-this.viewer.prompt (J.i18n.GT._ ("Capture") + ": " + (captureMode == 1073741874 ? J.i18n.GT._ ("canceled") : J.i18n.GT._ ("{0} saved", [fileName])), "OK", null, true);
+this.viewer.prompt (J.i18n.GT._ ("Capture") + ": " + (captureMode == 1073741874 ? J.i18n.GT._ ("canceled") : J.i18n.GT.o (J.i18n.GT._ ("{0} saved"), fileName)), "OK", null, true);
 }
 break;
 }break;
@@ -426,7 +426,7 @@ value = null;
 if (!value.startsWith ("JmolLog_")) value = "JmolLog_" + value;
 path = this.getLogPath (logFilePath + value);
 }if (path == null) value = null;
- else J.util.Logger.info (J.i18n.GT._ ("Setting log file to {0}", path));
+ else J.util.Logger.info (J.i18n.GT.o (J.i18n.GT._ ("Setting log file to {0}"), path));
 if (value == null || !this.viewer.haveAccess (J.viewer.Viewer.ACCESS.ALL)) {
 J.util.Logger.info (J.i18n.GT._ ("Cannot set log file path."));
 value = null;
@@ -439,7 +439,7 @@ $_M(c$, "logToFile",
 function (data) {
 try {
 var doClear = (data.equals ("$CLEAR$"));
-if (data.indexOf ("$NOW$") >= 0) data = J.util.TextFormat.simpleReplace (data, "$NOW$", this.viewer.apiPlatform.getDateFormat ());
+if (data.indexOf ("$NOW$") >= 0) data = JU.PT.simpleReplace (data, "$NOW$", this.viewer.apiPlatform.getDateFormat (false));
 if (this.viewer.logFileName == null) {
 J.util.Logger.info (data);
 return;
@@ -461,9 +461,9 @@ throw e;
 }, "~S");
 $_M(c$, "createZipSet", 
 ($fz = function (script, scripts, includeRemoteFiles, out) {
-var v =  new J.util.JmolList ();
+var v =  new JU.List ();
 var fm = this.viewer.fileManager;
-var fileNames =  new J.util.JmolList ();
+var fileNames =  new JU.List ();
 var crcMap =  new java.util.Hashtable ();
 var haveSceneScript = (scripts != null && scripts.length == 3 && scripts[1].startsWith ("###scene.spt###"));
 var sceneScriptOnly = (haveSceneScript && scripts[2].equals ("min"));
@@ -476,15 +476,15 @@ script = this.wrapPathForAllFiles ("script " + J.util.Escape.eS (scripts[0]), ""
 for (var i = 0; i < scripts.length; i++) fileNames.addLast (scripts[i]);
 
 }var nFiles = fileNames.size ();
-var newFileNames =  new J.util.JmolList ();
+var newFileNames =  new JU.List ();
 for (var iFile = 0; iFile < nFiles; iFile++) {
 var name = fileNames.get (iFile);
 var isLocal = !this.viewer.isJS && J.viewer.FileManager.isLocal (name);
 var newName = name;
 if (isLocal || includeRemoteFiles) {
 var ptSlash = name.lastIndexOf ("/");
-newName = (name.indexOf ("?") > 0 && name.indexOf ("|") < 0 ? J.util.TextFormat.replaceAllCharacters (name, "/:?\"'=&", "_") : J.viewer.FileManager.stripPath (name));
-newName = J.util.TextFormat.replaceAllCharacters (newName, "[]", "_");
+newName = (name.indexOf ("?") > 0 && name.indexOf ("|") < 0 ? JU.PT.replaceAllCharacters (name, "/:?\"'=&", "_") : J.viewer.FileManager.stripPath (name));
+newName = JU.PT.replaceAllCharacters (newName, "[]", "_");
 var isSparDir = (fm.spardirCache != null && fm.spardirCache.containsKey (name));
 if (isLocal && name.indexOf ("|") < 0 && !isSparDir) {
 v.addLast (name);
@@ -492,14 +492,14 @@ v.addLast (newName);
 v.addLast (null);
 } else {
 var ret = (isSparDir ? fm.spardirCache.get (name) : fm.getFileAsBytes (name, null, true));
-if (!J.util.Escape.isAB (ret)) return ret;
+if (!JU.PT.isAB (ret)) return ret;
 newName = this.addPngFileBytes (name, ret, iFile, crcMap, isSparDir, newName, ptSlash, v);
 }name = "$SCRIPT_PATH$" + newName;
 }crcMap.put (newName, newName);
 newFileNames.addLast (name);
 }
 if (!sceneScriptOnly) {
-script = J.util.TextFormat.replaceQuotedStrings (script, fileNames, newFileNames);
+script = J.util.Txt.replaceQuotedStrings (script, fileNames, newFileNames);
 v.addLast ("state.spt");
 v.addLast (null);
 v.addLast (script.getBytes ());
@@ -510,7 +510,7 @@ v.addLast (null);
 v.addLast (scripts[0].getBytes ());
 }v.addLast ("scene.spt");
 v.addLast (null);
-script = J.util.TextFormat.replaceQuotedStrings (scripts[1], fileNames, newFileNames);
+script = J.util.Txt.replaceQuotedStrings (scripts[1], fileNames, newFileNames);
 v.addLast (script.getBytes ());
 }var sname = (haveSceneScript ? "scene.spt" : "state.spt");
 v.addLast ("JmolManifest.txt");
@@ -527,7 +527,7 @@ v.addLast ("preview.png");
 v.addLast (null);
 v.addLast (bytes);
 }}return this.writeZipFile (this.privateKey, fm, this.viewer, out, v, "OK JMOL");
-}, $fz.isPrivate = true, $fz), "~S,~A,~B,J.io.JmolOutputChannel");
+}, $fz.isPrivate = true, $fz), "~S,~A,~B,JU.OC");
 $_M(c$, "addPngFileBytes", 
 ($fz = function (name, ret, iFile, crcMap, isSparDir, newName, ptSlash, v) {
 var crcValue = Integer.$valueOf (J.io.JmolBinary.getCrcValue (ret));
@@ -544,7 +544,7 @@ v.addLast (newName);
 v.addLast (ret);
 crcMap.put (crcValue, newName);
 }return newName;
-}, $fz.isPrivate = true, $fz), "~S,~A,~N,java.util.Hashtable,~B,~S,~N,J.util.JmolList");
+}, $fz.isPrivate = true, $fz), "~S,~A,~N,java.util.Hashtable,~B,~S,~N,JU.List");
 $_M(c$, "writeZipFile", 
 ($fz = function (privateKey, fm, viewer, out, fileNamesAndByteArrays, msg) {
 var buf =  Clazz.newByteArray (1024, 0);
@@ -570,7 +570,7 @@ if (fname.length > 2 && fname.charAt (2) == ':') fname = fname.substring (1);
 fname = fname.substring (8);
 }var fnameShort = fileNamesAndByteArrays.get (i + 1);
 if (fnameShort == null) fnameShort = fname;
-if (data != null) bytes = (J.util.Escape.isAB (data) ? data : (data).getBytes ());
+if (data != null) bytes = (JU.PT.isAB (data) ? data : (data).getBytes ());
 if (bytes == null) bytes = fileNamesAndByteArrays.get (i + 2);
 var key = ";" + fnameShort + ";";
 if (fileList.indexOf (key) >= 0) {
@@ -612,7 +612,7 @@ throw e;
 }
 var fileName = out.getFileName ();
 return (fileName == null ? null : msg + " " + nBytes + " " + fileName);
-}, $fz.isPrivate = true, $fz), "~N,J.viewer.FileManager,J.viewer.Viewer,J.io.JmolOutputChannel,J.util.JmolList,~S");
+}, $fz.isPrivate = true, $fz), "~N,J.viewer.FileManager,J.viewer.Viewer,JU.OC,JU.List,~S");
 $_M(c$, "wrapPathForAllFiles", 
 function (cmd, strCatch) {
 var vname = "v__" + ("" + Math.random ()).substring (3);

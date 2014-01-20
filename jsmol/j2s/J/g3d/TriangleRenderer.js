@@ -30,7 +30,7 @@ this.rgb16t2 =  new J.util.Rgb16 ();
 Clazz.makeConstructor (c$, 
 function () {
 });
-Clazz.overrideMethod (c$, "set", 
+$_V(c$, "set", 
 function (g3d) {
 try {
 this.rgb16sW =  new Array (64);
@@ -103,7 +103,7 @@ this.az[0] = screenA.z;
 this.az[1] = screenB.z;
 this.az[2] = screenC.z;
 this.fillTriangleB (useGouraud);
-}, "J.util.P3i,J.util.P3i,J.util.P3i,~B");
+}, "JU.P3i,JU.P3i,JU.P3i,~B");
 $_M(c$, "fillTriangleP3f", 
 function (screenA, screenB, screenC, useGouraud) {
 this.ax[0] = Math.round (screenA.x);
@@ -116,7 +116,7 @@ this.az[0] = Math.round (screenA.z);
 this.az[1] = Math.round (screenB.z);
 this.az[2] = Math.round (screenC.z);
 this.fillTriangleB (useGouraud);
-}, "J.util.P3,J.util.P3,J.util.P3,~B");
+}, "JU.P3,JU.P3,JU.P3,~B");
 $_M(c$, "fillTriangleP3if", 
 function (screenA, screenB, screenC, factor, useGouraud) {
 this.ax[0] = screenA.x;
@@ -132,7 +132,7 @@ J.g3d.TriangleRenderer.adjustVertex (this.ax, factor);
 J.g3d.TriangleRenderer.adjustVertex (this.ay, factor);
 J.g3d.TriangleRenderer.adjustVertex (this.az, factor);
 this.fillTriangleB (useGouraud);
-}, "J.util.P3i,J.util.P3i,J.util.P3i,~N,~B");
+}, "JU.P3i,JU.P3i,JU.P3i,~N,~B");
 c$.adjustVertex = $_M(c$, "adjustVertex", 
 ($fz = function (t, factor) {
 var av = (t[0] + t[1] + t[2]) / 3;

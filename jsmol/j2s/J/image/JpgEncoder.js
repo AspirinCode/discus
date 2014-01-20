@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.image");
-Clazz.load (["J.image.ImageEncoder", "J.util.ArrayUtil"], ["J.image.Huffman", "$.JpgEncoder", "$.DCT", "$.JpegObj"], null, function () {
+Clazz.load (["J.image.ImageEncoder", "JU.AU"], ["J.image.Huffman", "$.JpgEncoder", "$.DCT", "$.JpegObj"], null, function () {
 c$ = Clazz.decorateAsClass (function () {
 this.jpegObj = null;
 this.huf = null;
@@ -11,13 +11,13 @@ Clazz.makeConstructor (c$,
 function () {
 Clazz.superConstructor (this, J.image.JpgEncoder, []);
 });
-Clazz.overrideMethod (c$, "setParams", 
+$_V(c$, "setParams", 
 function (params) {
 if (this.quality <= 0) this.quality = this.defaultQuality;
 this.jpegObj =  new J.image.JpegObj ();
 this.jpegObj.comment = params.get ("comment");
 }, "java.util.Map");
-Clazz.overrideMethod (c$, "generate", 
+$_V(c$, "generate", 
 function () {
 this.jpegObj.imageWidth = this.width;
 this.jpegObj.imageHeight = this.height;
@@ -225,8 +225,8 @@ this.DivisorsChrominance = null;
 Clazz.instantialize (this, arguments);
 }, J.image, "DCT");
 Clazz.prepareFields (c$, function () {
-this.quantum = J.util.ArrayUtil.newInt2 (2);
-this.divisors = J.util.ArrayUtil.newDouble2 (2);
+this.quantum = JU.AU.newInt2 (2);
+this.divisors = JU.AU.newDouble2 (2);
 this.quantum_luminance =  Clazz.newIntArray (64, 0);
 this.DivisorsLuminance =  Clazz.newDoubleArray (64, 0);
 this.quantum_chrominance =  Clazz.newIntArray (64, 0);
@@ -508,7 +508,7 @@ r = 0;
 }}
 if (r > 0) {
 this.bufferIt (out, matrixAC[0][0], matrixAC[0][1]);
-}}, "J.io.JmolOutputChannel,~A,~N,~N,~N");
+}}, "JU.OC,~A,~N,~N,~N");
 $_M(c$, "bufferIt", 
 function (out, code, size) {
 var putBuffer = code;
@@ -527,7 +527,7 @@ putBits -= 8;
 }
 this.bufferPutBuffer = putBuffer;
 this.bufferPutBits = putBits;
-}, "J.io.JmolOutputChannel,~N,~N");
+}, "JU.OC,~N,~N");
 $_M(c$, "flushBuffer", 
 function (out) {
 var putBuffer = this.bufferPutBuffer;
@@ -543,15 +543,15 @@ putBits -= 8;
 if (putBits > 0) {
 var c = ((putBuffer >> 16) & 0xFF);
 out.writeByteAsInt (c);
-}}, "J.io.JmolOutputChannel");
+}}, "JU.OC");
 $_M(c$, "initHuf", 
 ($fz = function () {
 this.dc_matrix0 =  Clazz.newIntArray (12, 2, 0);
 this.dc_matrix1 =  Clazz.newIntArray (12, 2, 0);
 this.ac_matrix0 =  Clazz.newIntArray (255, 2, 0);
 this.ac_matrix1 =  Clazz.newIntArray (255, 2, 0);
-this.dc_matrix = J.util.ArrayUtil.newInt3 (2, -1);
-this.ac_matrix = J.util.ArrayUtil.newInt3 (2, -1);
+this.dc_matrix = JU.AU.newInt3 (2, -1);
+this.ac_matrix = JU.AU.newInt3 (2, -1);
 var p;
 var l;
 var i;
@@ -706,7 +706,7 @@ this.lastRowIsDummy = [false, false, false];
 });
 Clazz.makeConstructor (c$, 
 function () {
-this.components = J.util.ArrayUtil.newFloat3 (this.numberOfComponents, -1);
+this.components = JU.AU.newFloat3 (this.numberOfComponents, -1);
 this.compWidth =  Clazz.newIntArray (this.numberOfComponents, 0);
 this.compHeight =  Clazz.newIntArray (this.numberOfComponents, 0);
 this.blockWidth =  Clazz.newIntArray (this.numberOfComponents, 0);

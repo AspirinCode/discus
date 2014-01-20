@@ -14,7 +14,7 @@ this.scanLines = null;
 this.byteWidth = 0;
 Clazz.instantialize (this, arguments);
 }, J.image, "PngEncoder", J.image.CRCEncoder);
-Clazz.overrideMethod (c$, "setParams", 
+$_V(c$, "setParams", 
 function (params) {
 if (this.quality < 0) this.quality = 2;
  else if (this.quality > 9) this.quality = 9;
@@ -27,7 +27,7 @@ this.version = params.get ("comment");
 this.applicationData = params.get ("applicationData");
 this.applicationPrefix = params.get ("applicationPrefix");
 }, "java.util.Map");
-Clazz.overrideMethod (c$, "generate", 
+$_V(c$, "generate", 
 function () {
 var ptJmol =  Clazz.newIntArray (1, 0);
 if (!this.pngEncode (ptJmol)) {
@@ -106,7 +106,6 @@ this.bytesPerPixel = (this.encodeAlpha ? 4 : 3);
 this.byteWidth = this.width * this.bytesPerPixel;
 var scanWidth = this.byteWidth + 1;
 var rowsLeft = this.height;
-var startRow = 0;
 var nRows;
 var scanPos;
 var deflater =  new java.util.zip.Deflater (this.compressionLevel);
@@ -129,7 +128,6 @@ if (this.encodeAlpha) {
 this.scanLines[scanPos++] = ((this.pixels[pt] >> 24) & 0xff);
 }}
 compBytes.write (this.scanLines, 0, scanPos);
-startRow += nRows;
 rowsLeft -= nRows;
 }
 compBytes.close ();

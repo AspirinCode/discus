@@ -3,15 +3,17 @@ Clazz.load (["J.adapter.smarter.AtomSetCollectionReader"], "J.adapter.readers.mo
 c$ = Clazz.decorateAsClass (function () {
 this.is2D = false;
 this.isV3000 = false;
+this.haveAtomSerials = false;
 this.dimension = null;
 this.allow2D = true;
+this.iatom0 = 0;
 Clazz.instantialize (this, arguments);
 }, J.adapter.readers.molxyz, "MolReader", J.adapter.smarter.AtomSetCollectionReader);
-Clazz.overrideMethod (c$, "initializeReader", 
+$_V(c$, "initializeReader", 
 function () {
 this.is2D = this.checkFilterKey ("2D");
 });
-Clazz.overrideMethod (c$, "checkLine", 
+$_V(c$, "checkLine", 
 function () {
 var isMDL = (this.line.startsWith ("$MDL"));
 if (isMDL) {
@@ -24,6 +26,8 @@ return false;
 }}if (this.doGetModel (++this.modelNumber, null)) {
 this.processMolSdHeader ();
 this.processCtab (isMDL);
+this.iatom0 = this.atomSetCollection.getAtomCount ();
+this.isV3000 = false;
 if (this.isLastModel (this.modelNumber)) {
 this.continuing = false;
 return false;
@@ -53,7 +57,7 @@ throw e;
 }
 }}
 }, $fz.isPrivate = true, $fz), "~N");
-Clazz.overrideMethod (c$, "finalizeReader", 
+$_V(c$, "finalizeReader", 
 function () {
 this.finalizeReaderMR ();
 });
@@ -107,13 +111,14 @@ $_M(c$, "readAtoms",
 if (this.isV3000) this.discardLinesUntilContains ("BEGIN ATOM");
 for (var i = 0; i < atomCount; ++i) {
 this.readLine ();
+var len = this.line.length;
 var elementSymbol;
 var x;
 var y;
 var z;
 var charge = 0;
 var isotope = 0;
-var iAtom = i + 1;
+var iAtom = -2147483648;
 if (this.isV3000) {
 this.checkLineContinuation ();
 var tokens = this.getTokens ();
@@ -130,14 +135,14 @@ if (s.startsWith ("CHG=")) charge = this.parseIntStr (tokens[j].substring (4));
 }
 if (isotope > 1 && elementSymbol.equals ("H")) isotope = 1 - isotope;
 } else {
-if (this.line.length > 34) {
-elementSymbol = this.line.substring (31, 34).trim ();
-} else {
-elementSymbol = this.line.substring (31).trim ();
-}x = this.parseFloatRange (this.line, 0, 10);
+x = this.parseFloatRange (this.line, 0, 10);
 y = this.parseFloatRange (this.line, 10, 20);
 z = this.parseFloatRange (this.line, 20, 30);
-if (this.line.length >= 39) {
+if (len < 34) {
+elementSymbol = this.line.substring (31).trim ();
+} else {
+elementSymbol = this.line.substring (31, 34).trim ();
+if (len >= 39) {
 var code = this.parseIntRange (this.line, 36, 39);
 if (code >= 1 && code <= 7) charge = 4 - code;
 code = this.parseIntRange (this.line, 34, 36);
@@ -152,6 +157,7 @@ break;
 default:
 isotope += code;
 }
+}if (iAtom == -2147483648 && this.haveAtomSerials) iAtom = i + 1;
 }}}switch (isotope) {
 case 0:
 break;
@@ -169,9 +175,13 @@ var atom =  new J.adapter.smarter.Atom ();
 atom.elementSymbol = elementSymbol;
 atom.formalCharge = charge;
 this.setAtomCoordXYZ (atom, x, y, z);
+if (iAtom == -2147483648) {
+this.atomSetCollection.addAtom (atom);
+} else {
+this.haveAtomSerials = true;
 atom.atomSerial = iAtom;
 this.atomSetCollection.addAtomWithMappedSerialNumber (atom);
-}
+}}
 if (this.isV3000) this.discardLinesUntilContains ("END ATOM");
 }, $fz.isPrivate = true, $fz), "~N");
 $_M(c$, "checkLineContinuation", 
@@ -219,7 +229,8 @@ iAtom2 = this.parseIntRange (this.line, 3, 6);
 order = this.parseIntRange (this.line, 6, 9);
 if (this.is2D && order == 1 && this.line.length >= 12) stereo = this.parseIntRange (this.line, 9, 12);
 }order = this.fixOrder (order, stereo);
-this.atomSetCollection.addNewBondWithMappedSerialNumbers (iAtom1, iAtom2, order);
+if (this.haveAtomSerials) this.atomSetCollection.addNewBondWithMappedSerialNumbers (iAtom1, iAtom2, order);
+ else this.atomSetCollection.addNewBondWithOrder (this.iatom0 + iAtom1 - 1, this.iatom0 + iAtom2 - 1, order);
 }
 if (this.isV3000) this.discardLinesUntilContains ("END BOND");
 }, $fz.isPrivate = true, $fz), "~N");

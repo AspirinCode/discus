@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.jvxl.readers");
-Clazz.load (["J.jvxl.readers.SurfaceReader"], "J.jvxl.readers.SurfaceFileReader", ["J.api.Interface", "J.util.Parser"], function () {
+Clazz.load (["J.jvxl.readers.SurfaceReader"], "J.jvxl.readers.SurfaceFileReader", ["JU.PT", "J.api.Interface"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.br = null;
 this.binarydoc = null;
@@ -15,7 +15,7 @@ Clazz.makeConstructor (c$,
 function () {
 Clazz.superConstructor (this, J.jvxl.readers.SurfaceFileReader, []);
 });
-Clazz.overrideMethod (c$, "init", 
+$_V(c$, "init", 
 function (sg) {
 this.initSR (sg);
 }, "J.jvxl.readers.SurfaceGenerator");
@@ -32,12 +32,12 @@ $_M(c$, "newBinaryDocument",
 function () {
 return J.api.Interface.getOptionInterface ("io2.BinaryDocument");
 });
-Clazz.overrideMethod (c$, "setOutputChannel", 
+$_V(c$, "setOutputChannel", 
 function (out) {
 if (this.binarydoc == null) this.out = out;
  else this.sg.setOutputChannel (this.binarydoc, out);
-}, "J.io.JmolOutputChannel");
-Clazz.overrideMethod (c$, "closeReader", 
+}, "JU.OC");
+$_V(c$, "closeReader", 
 function () {
 this.closeReaderSFR ();
 });
@@ -54,54 +54,54 @@ throw e;
 if (this.out != null) this.out.closeChannel ();
 if (this.binarydoc != null) this.binarydoc.close ();
 });
-Clazz.overrideMethod (c$, "discardTempData", 
+$_V(c$, "discardTempData", 
 function (discardAll) {
 this.closeReader ();
 this.discardTempDataSR (discardAll);
 }, "~B");
 $_M(c$, "getTokens", 
 function () {
-return J.util.Parser.getTokensAt (this.line, 0);
+return JU.PT.getTokensAt (this.line, 0);
 });
 $_M(c$, "parseFloat", 
 function () {
-return J.util.Parser.parseFloatNext (this.line, this.next);
+return JU.PT.parseFloatNext (this.line, this.next);
 });
 $_M(c$, "parseFloatStr", 
 function (s) {
 this.next[0] = 0;
-return J.util.Parser.parseFloatNext (s, this.next);
+return JU.PT.parseFloatNext (s, this.next);
 }, "~S");
 $_M(c$, "parseFloatRange", 
 function (s, iStart, iEnd) {
 this.next[0] = iStart;
-return J.util.Parser.parseFloatRange (s, iEnd, this.next);
+return JU.PT.parseFloatRange (s, iEnd, this.next);
 }, "~S,~N,~N");
 $_M(c$, "parseInt", 
 function () {
-return J.util.Parser.parseIntNext (this.line, this.next);
+return JU.PT.parseIntNext (this.line, this.next);
 });
 $_M(c$, "parseIntStr", 
 function (s) {
 this.next[0] = 0;
-return J.util.Parser.parseIntNext (s, this.next);
+return JU.PT.parseIntNext (s, this.next);
 }, "~S");
 $_M(c$, "parseIntNext", 
 function (s) {
-return J.util.Parser.parseIntNext (s, this.next);
+return JU.PT.parseIntNext (s, this.next);
 }, "~S");
 $_M(c$, "parseFloatArrayStr", 
 function (s) {
 this.next[0] = 0;
-return J.util.Parser.parseFloatArrayNext (s, this.next, null, null, null);
+return JU.PT.parseFloatArrayNext (s, this.next, null, null, null);
 }, "~S");
 $_M(c$, "parseFloatArray", 
 function (a, strStart, strEnd) {
-return J.util.Parser.parseFloatArrayNext (this.line, this.next, a, strStart, strEnd);
+return JU.PT.parseFloatArrayNext (this.line, this.next, a, strStart, strEnd);
 }, "~A,~S,~S");
 $_M(c$, "getQuotedStringNext", 
 function () {
-return J.util.Parser.getQuotedStringNext (this.line, this.next);
+return JU.PT.getQuotedStringNext (this.line, this.next);
 });
 $_M(c$, "skipTo", 
 function (info, what) {

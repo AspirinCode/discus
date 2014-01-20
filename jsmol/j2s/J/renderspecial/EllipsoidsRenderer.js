@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.renderspecial");
-Clazz.load (["J.render.ShapeRenderer", "J.util.BS", "$.Matrix3f", "$.Matrix4f", "$.P3", "$.P3i", "$.V3", "J.viewer.JC"], "J.renderspecial.EllipsoidsRenderer", ["java.lang.Float", "J.shapespecial.Ellipsoid", "J.util.C", "$.GData", "$.Normix", "$.Parser"], function () {
+Clazz.load (["J.render.ShapeRenderer", "JU.BS", "$.M3", "$.M4", "$.P3", "$.P3i", "$.V3", "J.viewer.JC"], "J.renderspecial.EllipsoidsRenderer", ["java.lang.Float", "JU.PT", "J.shapespecial.Ellipsoid", "J.util.C", "$.GData", "$.Normix"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.ellipsoids = null;
 this.bGlobals = null;
@@ -45,33 +45,33 @@ Clazz.prepareFields (c$, function () {
 this.bGlobals =  Clazz.newBooleanArray (7, false);
 this.bOptions =  Clazz.newBooleanArray (7, false);
 this.OPTS = ["dots", "arcs", "axes", "fill", "ball", "arrows", "wireframe"];
-this.bsTemp =  new J.util.BS ();
-this.mat =  new J.util.Matrix3f ();
-this.mTemp =  new J.util.Matrix3f ();
-this.mDeriv =  new J.util.Matrix4f ();
-this.matScreenToCartesian =  new J.util.Matrix3f ();
-this.matScreenToEllipsoid =  new J.util.Matrix3f ();
-this.matEllipsoidToScreen =  new J.util.Matrix3f ();
+this.bsTemp =  new JU.BS ();
+this.mat =  new JU.M3 ();
+this.mTemp =  new JU.M3 ();
+this.mDeriv =  new JU.M4 ();
+this.matScreenToCartesian =  new JU.M3 ();
+this.matScreenToEllipsoid =  new JU.M3 ();
+this.matEllipsoidToScreen =  new JU.M3 ();
 this.coefs =  Clazz.newDoubleArray (10, 0);
 this.factoredLengths =  Clazz.newFloatArray (3, 0);
 this.selectedPoints =  new Array (3);
-this.v1 =  new J.util.V3 ();
-this.v2 =  new J.util.V3 ();
-this.v3 =  new J.util.V3 ();
-this.pt1 =  new J.util.P3 ();
-this.pt2 =  new J.util.P3 ();
-this.s0 =  new J.util.P3i ();
-this.s1 =  new J.util.P3i ();
-this.s2 =  new J.util.P3i ();
+this.v1 =  new JU.V3 ();
+this.v2 =  new JU.V3 ();
+this.v3 =  new JU.V3 ();
+this.pt1 =  new JU.P3 ();
+this.pt2 =  new JU.P3 ();
+this.s0 =  new JU.P3i ();
+this.s1 =  new JU.P3i ();
+this.s2 =  new JU.P3i ();
 this.screens =  new Array (38);
 this.points =  new Array (6);
 {
-for (var i = 0; i < this.points.length; i++) this.points[i] =  new J.util.P3 ();
+for (var i = 0; i < this.points.length; i++) this.points[i] =  new JU.P3 ();
 
-for (var i = 0; i < this.screens.length; i++) this.screens[i] =  new J.util.P3i ();
+for (var i = 0; i < this.screens.length; i++) this.screens[i] =  new JU.P3i ();
 
 }});
-Clazz.overrideMethod (c$, "render", 
+$_V(c$, "render", 
 function () {
 this.isSet = false;
 this.ellipsoids = this.shape;
@@ -109,8 +109,8 @@ for (var i = 0; i < 7; i++) this.bOptions[i] = this.bGlobals[i];
 if (options != null) {
 options = ";" + options + ";";
 for (var i = 0; i < 7; i++) {
-if (J.util.Parser.isOneOf (this.OPTS[i], options)) this.bOptions[i] = true;
- else if (J.util.Parser.isOneOf ("no" + this.OPTS[i], options)) this.bOptions[i] = false;
+if (JU.PT.isOneOf (this.OPTS[i], options)) this.bOptions[i] = true;
+ else if (JU.PT.isOneOf ("no" + this.OPTS[i], options)) this.bOptions[i] = false;
 }
 }this.setLogic ();
 }, $fz.isPrivate = true, $fz), "~S");
@@ -141,7 +141,7 @@ if (isSimple) {
 this.colix = ellipsoid.colix;
 } else {
 atom = this.modelSet.atoms[ellipsoid.tensor.atomIndex1];
-if (atom.screenZ <= 1 || !atom.isVisible (this.myVisibilityFlag)) continue;
+if (atom.sZ <= 1 || !atom.isVisible (this.myVisibilityFlag)) continue;
 this.colix = J.util.C.getColixInherited (ellipsoid.colix, atom.getColix ());
 }if (!this.g3d.setColix (this.colix)) {
 needTranslucent = true;
@@ -253,7 +253,7 @@ this.s1.x += Clazz.floatToInt (this.v1.x);
 this.s1.y += Clazz.floatToInt (this.v1.y);
 this.s1.z += Clazz.floatToInt (this.v1.z);
 }this.g3d.fillConeScreen (2, Clazz.floatToInt (diam), this.s1, this.s2, false);
-}, $fz.isPrivate = true, $fz), "J.util.P3i,J.util.P3i,~B");
+}, $fz.isPrivate = true, $fz), "JU.P3i,JU.P3i,~B");
 $_M(c$, "renderAxes", 
 ($fz = function () {
 if (this.bOptions[4] && this.bOptions[3]) {
@@ -305,10 +305,8 @@ this.renderArc (J.renderspecial.EllipsoidsRenderer.octants[pt + 2], J.renderspec
 }, $fz.isPrivate = true, $fz));
 $_M(c$, "renderArc", 
 ($fz = function (ptA, ptB) {
-this.v1.setT (this.points[ptA]);
-this.v1.sub (this.center);
-this.v2.setT (this.points[ptB]);
-this.v2.sub (this.center);
+this.v1.sub2 (this.points[ptA], this.center);
+this.v2.sub2 (this.points[ptB], this.center);
 var d1 = this.v1.length ();
 var d2 = this.v2.length ();
 this.v1.normalize ();

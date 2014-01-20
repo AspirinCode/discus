@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.util");
-Clazz.load (null, "J.util.Tensor", ["java.lang.Float", "java.util.Arrays", "$.Hashtable", "J.util.Eigen", "$.EigenSort", "$.Escape", "$.Matrix3f", "$.P3", "$.Parser", "$.Quaternion", "$.TextFormat", "$.V3"], function () {
+Clazz.load (null, "J.util.Tensor", ["java.lang.Float", "java.util.Arrays", "$.Hashtable", "JU.M3", "$.P3", "$.PT", "$.V3", "J.util.Eigen", "$.EigenSort", "$.Escape", "$.Quaternion"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.id = null;
 this.type = null;
@@ -34,7 +34,7 @@ if (infoType.charAt (0) != ';') infoType = ";" + infoType + ".";
 switch (Clazz.doubleToInt (";.............;eigenvalues..;eigenvectors.;asymmatrix...;symmatrix....;value........;isotropy.....;anisotropy...;asymmetry....;eulerzyz.....;eulerzxz.....;quaternion...;indices......;string.......;type.........;id...........;span.........;skew.........".indexOf (infoType) / 14)) {
 default:
 var info =  new java.util.Hashtable ();
-var s = J.util.Parser.getTokens (J.util.TextFormat.replaceAllCharacter (";.............;eigenvalues..;eigenvectors.;asymmatrix...;symmatrix....;value........;isotropy.....;anisotropy...;asymmetry....;eulerzyz.....;eulerzxz.....;quaternion...;indices......;string.......;type.........;id...........;span.........;skew.........", ";.", ' ').trim ());
+var s = JU.PT.getTokens (JU.PT.replaceAllCharacter (";.............;eigenvalues..;eigenvectors.;asymmatrix...;symmatrix....;value........;isotropy.....;anisotropy...;asymmetry....;eulerzyz.....;eulerzxz.....;quaternion...;indices......;string.......;type.........;id...........;span.........;skew.........", ";.", ' ').trim ());
 java.util.Arrays.sort (s);
 for (var i = 0; i < s.length; i++) {
 var o = this.getInfo (s[i]);
@@ -45,7 +45,7 @@ case 1:
 return this.eigenValues;
 case 2:
 var list =  new Array (3);
-for (var i = 0; i < 3; i++) list[i] = J.util.P3.newP (this.eigenVectors[i]);
+for (var i = 0; i < 3; i++) list[i] = JU.P3.newP (this.eigenVectors[i]);
 
 return list;
 case 3:
@@ -55,7 +55,7 @@ var pt = 0;
 for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) a[pt++] = this.asymMatrix[i][j];
 
 
-return J.util.Matrix3f.newA (a);
+return JU.M3.newA (a);
 case 4:
 if (this.symMatrix == null) return null;
 var b =  Clazz.newFloatArray (9, 0);
@@ -63,7 +63,7 @@ var p2 = 0;
 for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) b[p2++] = this.symMatrix[i][j];
 
 
-return J.util.Matrix3f.newA (b);
+return JU.M3.newA (b);
 case 5:
 return Float.$valueOf (this.eigenValues[2]);
 case 6:
@@ -148,15 +148,15 @@ a[1][2] = a[2][1] = (a[1][2] + a[2][1]) / 2;
 a[0][2] = a[2][0] = (a[0][2] + a[2][0]) / 2;
 }var eigen =  new J.util.Eigen ().set (3);
 eigen.calc (a);
-var m =  new J.util.Matrix3f ();
+var m =  new JU.M3 ();
 var mm =  Clazz.newFloatArray (9, 0);
 for (var i = 0, p = 0; i < 3; i++) for (var j = 0; j < 3; j++) mm[p++] = a[i][j];
 
 
 m.setA (mm);
 var evec = eigen.getEigenVectors3 ();
-var n =  new J.util.V3 ();
-var cross =  new J.util.V3 ();
+var n =  new JU.V3 ();
+var cross =  new JU.V3 ();
 for (var i = 0; i < 3; i++) {
 n.setT (evec[i]);
 m.transform (n);
@@ -179,7 +179,7 @@ function (eigenVectors, eigenValues, type, id) {
 var values =  Clazz.newFloatArray (3, 0);
 var vectors =  new Array (3);
 for (var i = 0; i < 3; i++) {
-vectors[i] = J.util.V3.newV (eigenVectors[i]);
+vectors[i] = JU.V3.newV (eigenVectors[i]);
 values[i] = eigenValues[i];
 }
 this.newTensorType (vectors, values, type, id);
@@ -190,7 +190,7 @@ function (axes) {
 this.eigenValues =  Clazz.newFloatArray (3, 0);
 this.eigenVectors =  new Array (3);
 for (var i = 0; i < 3; i++) {
-this.eigenVectors[i] = J.util.V3.newV (axes[i]);
+this.eigenVectors[i] = JU.V3.newV (axes[i]);
 this.eigenValues[i] = axes[i].length ();
 if (this.eigenValues[i] == 0) return null;
 this.eigenVectors[i].normalize ();
@@ -236,7 +236,7 @@ this.atomIndex2 = index2;
 $_M(c$, "isSelected", 
 function (bsSelected, iAtom) {
 return (iAtom >= 0 ? (this.atomIndex1 == iAtom || this.atomIndex2 == iAtom) : bsSelected.get (this.atomIndex1) && (this.atomIndex2 < 0 || bsSelected.get (this.atomIndex2)));
-}, "J.util.BS,~N");
+}, "JU.BS,~N");
 $_M(c$, "newTensorType", 
 ($fz = function (vectors, values, type, id) {
 this.eigenValues = values;
@@ -291,7 +291,7 @@ break;
 }, $fz.isPrivate = true, $fz));
 $_M(c$, "sortAndNormalize", 
 ($fz = function () {
-var o = [[J.util.V3.newV (this.eigenVectors[0]), Float.$valueOf (this.eigenValues[0])], [J.util.V3.newV (this.eigenVectors[1]), Float.$valueOf (this.eigenValues[1])], [J.util.V3.newV (this.eigenVectors[2]), Float.$valueOf (this.eigenValues[2])]];
+var o = [[JU.V3.newV (this.eigenVectors[0]), Float.$valueOf (this.eigenValues[0])], [JU.V3.newV (this.eigenVectors[1]), Float.$valueOf (this.eigenValues[1])], [JU.V3.newV (this.eigenVectors[2]), Float.$valueOf (this.eigenValues[2])]];
 java.util.Arrays.sort (o, J.util.Tensor.getEigenSort ());
 for (var i = 0; i < 3; i++) {
 var pt = i;
@@ -318,9 +318,9 @@ return true;
 }, "J.util.Tensor");
 c$.getEigenSort = $_M(c$, "getEigenSort", 
 ($fz = function () {
-return (J.util.Tensor.tSort == null ? (($t$ = J.util.Tensor.tSort =  new J.util.EigenSort (), J.util.Tensor.prototype.tSort = J.util.Tensor.tSort, $t$)) : J.util.Tensor.tSort);
+return (J.util.Tensor.tSort == null ? (J.util.Tensor.tSort =  new J.util.EigenSort ()) : J.util.Tensor.tSort);
 }, $fz.isPrivate = true, $fz));
-Clazz.overrideMethod (c$, "toString", 
+$_V(c$, "toString", 
 function () {
 return (this.type + " " + this.modelIndex + " " + this.atomIndex1 + " " + this.atomIndex2 + "\n" + (this.eigenVectors == null ? "" + this.eigenValues[0] : this.eigenVectors[0] + "\t" + this.eigenValues[0] + "\t" + "\n" + this.eigenVectors[1] + "\t" + this.eigenValues[1] + "\t" + "\n" + this.eigenVectors[2] + "\t" + this.eigenValues[2] + "\t" + "\n"));
 });

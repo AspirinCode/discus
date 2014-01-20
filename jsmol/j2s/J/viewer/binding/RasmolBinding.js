@@ -3,9 +3,10 @@ Clazz.load (["J.viewer.binding.JmolBinding"], "J.viewer.binding.RasmolBinding", 
 c$ = Clazz.declareType (J.viewer.binding, "RasmolBinding", J.viewer.binding.JmolBinding);
 Clazz.makeConstructor (c$, 
 function () {
-Clazz.superConstructor (this, J.viewer.binding.RasmolBinding, ["selectOrToggle"]);
+Clazz.superConstructor (this, J.viewer.binding.RasmolBinding, []);
+this.set ("selectOrToggle");
 });
-Clazz.overrideMethod (c$, "setSelectBindings", 
+$_V(c$, "setSelectBindings", 
 function () {
 this.bindAction (33040, 30);
 this.bindAction (33041, 35);

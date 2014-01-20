@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.io");
-Clazz.load (null, "J.io.FileReader", ["java.io.BufferedReader", "J.api.Interface", "J.io.JmolBinary", "J.util.Escape", "$.Logger", "$.TextFormat"], function () {
+Clazz.load (null, "J.io.FileReader", ["java.io.BufferedInputStream", "$.BufferedReader", "$.Reader", "javajs.api.ZInputStream", "JU.PT", "J.api.Interface", "$.JmolDocument", "J.io.JmolBinary", "J.util.Logger"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.fm = null;
 this.viewer = null;
@@ -23,7 +23,7 @@ this.fullPathNameIn = fullPathName;
 this.nameAsGivenIn = nameAsGiven;
 this.fileTypeIn = type;
 this.reader = (Clazz.instanceOf (reader, java.io.BufferedReader) ? reader : Clazz.instanceOf (reader, java.io.Reader) ?  new java.io.BufferedReader (reader) : null);
-this.bytes = (J.util.Escape.isAB (reader) ? reader : null);
+this.bytes = (JU.PT.isAB (reader) ? reader : null);
 this.htParams = htParams;
 this.isAppend = isAppend;
 }, "J.viewer.FileManager,J.viewer.Viewer,~S,~S,~S,~S,~O,java.util.Map,~B");
@@ -41,11 +41,11 @@ this.atomSetCollection = errorMessage;
 return;
 }if (Clazz.instanceOf (t, java.io.BufferedReader)) {
 this.reader = t;
-} else if (Clazz.instanceOf (t, J.api.ZInputStream)) {
+} else if (Clazz.instanceOf (t, javajs.api.ZInputStream)) {
 var name = this.fullPathNameIn;
 var subFileList = null;
 if (name.indexOf ("|") >= 0 && !name.endsWith (".zip")) {
-subFileList = J.util.TextFormat.splitChars (name, "|");
+subFileList = JU.PT.split (name, "|");
 name = subFileList[0];
 }if (subFileList != null) this.htParams.put ("subFileList", subFileList);
 var zis = t;
@@ -77,9 +77,7 @@ throw e;
 }
 }if (Clazz.instanceOf (this.atomSetCollection, String)) return;
 if (!this.isAppend && !this.viewer.displayLoadErrors) this.viewer.zap (false, true, false);
-this.fm.fullPathName = this.fullPathNameIn;
-this.fm.nameAsGiven = this.nameAsGivenIn;
-this.fm.fileName = this.fileNameIn;
+this.fm.setFileInfo ([this.fullPathNameIn, this.nameAsGivenIn, this.fileNameIn]);
 });
 $_M(c$, "getAtomSetCollection", 
 function () {

@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.renderbio");
-Clazz.load (["J.render.MeshRenderer", "J.util.AxisAngle4f", "$.BS", "$.Matrix3f", "$.P3", "$.P3i", "$.V3"], "J.renderbio.BioShapeRenderer", ["J.constant.EnumStructure", "J.shape.Mesh", "J.util.C", "$.Hermite", "$.Logger", "$.Normix"], function () {
+Clazz.load (["J.render.MeshRenderer", "JU.A4", "$.BS", "$.M3", "$.P3", "$.P3i", "$.V3"], "J.renderbio.BioShapeRenderer", ["J.constant.EnumStructure", "J.modelsetbio.CarbohydratePolymer", "$.NucleicPolymer", "J.shape.Mesh", "J.util.C", "$.Hermite", "$.Logger", "$.Normix"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.invalidateMesh = false;
 this.invalidateSheets = false;
@@ -65,25 +65,25 @@ this.norml = null;
 Clazz.instantialize (this, arguments);
 }, J.renderbio, "BioShapeRenderer", J.render.MeshRenderer);
 Clazz.prepareFields (c$, function () {
-this.bsVisible =  new J.util.BS ();
-this.pointT =  new J.util.P3 ();
-this.screenArrowTop =  new J.util.P3i ();
-this.screenArrowTopPrev =  new J.util.P3i ();
-this.screenArrowBot =  new J.util.P3i ();
-this.screenArrowBotPrev =  new J.util.P3i ();
-this.norm =  new J.util.V3 ();
-this.wing =  new J.util.V3 ();
-this.wing1 =  new J.util.V3 ();
-this.wingT =  new J.util.V3 ();
-this.aa =  new J.util.AxisAngle4f ();
-this.pt =  new J.util.P3 ();
-this.pt1 =  new J.util.P3 ();
-this.ptPrev =  new J.util.P3 ();
-this.ptNext =  new J.util.P3 ();
-this.mat =  new J.util.Matrix3f ();
-this.norml =  new J.util.V3 ();
+this.bsVisible =  new JU.BS ();
+this.pointT =  new JU.P3 ();
+this.screenArrowTop =  new JU.P3i ();
+this.screenArrowTopPrev =  new JU.P3i ();
+this.screenArrowBot =  new JU.P3i ();
+this.screenArrowBotPrev =  new JU.P3i ();
+this.norm =  new JU.V3 ();
+this.wing =  new JU.V3 ();
+this.wing1 =  new JU.V3 ();
+this.wingT =  new JU.V3 ();
+this.aa =  new JU.A4 ();
+this.pt =  new JU.P3 ();
+this.pt1 =  new JU.P3 ();
+this.ptPrev =  new JU.P3 ();
+this.ptNext =  new JU.P3 ();
+this.mat =  new JU.M3 ();
+this.norml =  new JU.V3 ();
 });
-Clazz.overrideMethod (c$, "render", 
+$_V(c$, "render", 
 function () {
 if (this.shape == null) return false;
 this.setGlobals ();
@@ -159,7 +159,7 @@ this.controlPoints = bioShape.bioPolymer.getControlPoints (true, 0, false);
 } else {
 this.controlPoints = bioShape.bioPolymer.getControlPoints (this.isTraceAlpha, this.sheetSmoothing, this.invalidateSheets);
 }this.monomerCount = bioShape.monomerCount;
-this.bsRenderMesh = J.util.BS.newN (this.monomerCount);
+this.bsRenderMesh = JU.BS.newN (this.monomerCount);
 this.monomers = bioShape.monomers;
 this.reversed = bioShape.bioPolymer.reversed;
 this.leadAtomIndices = bioShape.bioPolymer.getLeadAtomIndices ();
@@ -169,7 +169,7 @@ if (this.invalidateMesh) bioShape.falsifyMesh ();
 for (var i = this.monomerCount; --i >= 0; ) {
 if ((this.monomers[i].shapeVisibilityFlags & this.myVisibilityFlag) == 0 || this.modelSet.isAtomHidden (this.leadAtomIndices[i]) || bsDeleted != null && bsDeleted.get (this.leadAtomIndices[i])) continue;
 var lead = this.modelSet.atoms[this.leadAtomIndices[i]];
-if (!this.g3d.isInDisplayRange (lead.screenX, lead.screenY)) continue;
+if (!this.g3d.isInDisplayRange (lead.sX, lead.sY)) continue;
 this.bsVisible.set (i);
 haveVisible = true;
 }
@@ -228,11 +228,9 @@ for (var i = count; --i >= 0; ) this.calc1Screen (this.controlPoints[i], this.wi
 }, "~N");
 $_M(c$, "calc1Screen", 
 ($fz = function (center, vector, mad, offset_1000, screen) {
-this.pointT.setT (vector);
-var scale = mad * offset_1000;
-this.pointT.scaleAdd (scale, center);
+this.pointT.scaleAdd2 (mad * offset_1000, vector, center);
 this.viewer.transformPtScr (this.pointT, screen);
-}, $fz.isPrivate = true, $fz), "J.util.P3,J.util.V3,~N,~N,J.util.P3i");
+}, $fz.isPrivate = true, $fz), "JU.P3,JU.V3,~N,~N,JU.P3i");
 $_M(c$, "getLeadColix", 
 function (i) {
 return J.util.C.getColixInherited (this.colixes[i], this.monomers[i].getLeadAtom ().getColix ());
@@ -264,7 +262,7 @@ this.madEnd = this.madBeg;
 if (!thisTypeOnly || this.structureTypes[i] === this.structureTypes[this.iPrev]) this.madBeg = (((this.mads[this.iPrev] == 0 ? this.madMid : this.mads[this.iPrev]) + this.madMid) >> 1);
 if (!thisTypeOnly || this.structureTypes[i] === this.structureTypes[this.iNext]) this.madEnd = (((this.mads[this.iNext] == 0 ? this.madMid : this.mads[this.iNext]) + this.madMid) >> 1);
 }this.diameterBeg = Clazz.floatToInt (this.viewer.scaleToScreen (this.controlPointScreens[i].z, this.madBeg));
-this.diameterMid = Clazz.floatToInt (this.viewer.scaleToScreen (this.monomers[i].getLeadAtom ().screenZ, this.madMid));
+this.diameterMid = Clazz.floatToInt (this.viewer.scaleToScreen (this.monomers[i].getLeadAtom ().sZ, this.madMid));
 this.diameterEnd = Clazz.floatToInt (this.viewer.scaleToScreen (this.controlPointScreens[this.iNext].z, this.madEnd));
 this.doCap0 = (i == this.iPrev || thisTypeOnly && this.structureTypes[i] !== this.structureTypes[this.iPrev]);
 this.doCap1 = (this.iNext == this.iNext2 || thisTypeOnly && this.structureTypes[i] !== this.structureTypes[this.iNext]);

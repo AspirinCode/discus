@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.image");
-Clazz.load (["J.image.JpgEncoder"], "J.image.Jpg64Encoder", ["J.io.Base64"], function () {
+Clazz.load (["J.image.JpgEncoder"], "J.image.Jpg64Encoder", ["JU.Base64"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.outTemp = null;
 Clazz.instantialize (this, arguments);
@@ -15,7 +15,7 @@ function () {
 var out0 = this.out;
 this.out = this.outTemp;
 Clazz.superCall (this, J.image.Jpg64Encoder, "generate", []);
-var bytes = J.io.Base64.getBytes64 (this.out.toByteArray ());
+var bytes = JU.Base64.getBytes64 (this.out.toByteArray ());
 this.outTemp = null;
 this.out = out0;
 this.out.write (bytes, 0, bytes.length);

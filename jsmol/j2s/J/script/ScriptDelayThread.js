@@ -14,7 +14,7 @@ this.setViewer (viewer, "ScriptDelayThread");
 this.millis = millis;
 this.setEval (eval);
 }, "J.api.JmolScriptEvaluator,J.viewer.Viewer,~N");
-Clazz.overrideMethod (c$, "run1", 
+$_V(c$, "run1", 
 function (mode) {
 while (true) switch (mode) {
 case -1:
@@ -42,7 +42,7 @@ if (this.seconds < 0) this.millis = 0;
 mode = (this.seconds > 0 || this.millis > 0 ? 0 : -2);
 break;
 case -2:
-if (this.doPopPush) this.viewer.pushHoldRepaint ("delay FINISH");
+if (this.doPopPush) this.viewer.pushHoldRepaintWhy ("delay FINISH");
 if (this.isPauseDelay) this.eval.notifyResumeStatus ();
 this.resumeEval ();
 return;

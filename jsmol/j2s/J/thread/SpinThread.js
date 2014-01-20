@@ -21,7 +21,7 @@ Clazz.makeConstructor (c$,
 function () {
 Clazz.superConstructor (this, J.thread.SpinThread, []);
 });
-Clazz.overrideMethod (c$, "setManager", 
+$_V(c$, "setManager", 
 function (manager, viewer, params) {
 this.transformManager = manager;
 this.setViewer (viewer, "SpinThread");
@@ -37,12 +37,12 @@ this.bsAtoms = options[3];
 this.isGesture = (options[4] != null);
 }return 0;
 }, "~O,J.viewer.Viewer,~O");
-Clazz.overrideMethod (c$, "run1", 
+$_V(c$, "run1", 
 function (mode) {
 while (true) switch (mode) {
 case -1:
 this.myFps = (this.isNav ? this.transformManager.navFps : this.transformManager.spinFps);
-this.viewer.getGlobalSettings ().setB (this.isNav ? "_navigating" : "_spinning", true);
+this.viewer.global.setB (this.isNav ? "_navigating" : "_spinning", true);
 this.viewer.startHoverWatcher (false);
 mode = 0;
 break;
@@ -61,7 +61,7 @@ this.startTime = System.currentTimeMillis ();
 }if (this.myFps == 0 || !(this.isNav ? this.transformManager.navOn : this.transformManager.spinOn)) {
 mode = -2;
 break;
-}var refreshNeeded = (this.isNav ? this.transformManager.navX != 0 || this.transformManager.navY != 0 || this.transformManager.navZ != 0 : this.transformManager.isSpinInternal && this.transformManager.internalRotationAxis.angle != 0 || this.transformManager.isSpinFixed && this.transformManager.fixedRotationAxis.angle != 0 || !this.transformManager.isSpinFixed && !this.transformManager.isSpinInternal && (this.transformManager.spinX != 0 || this.transformManager.spinY != 0 || this.transformManager.spinZ != 0));
+}var refreshNeeded = (this.endDegrees >= 1e10 ? true : this.isNav ? this.transformManager.navX != 0 || this.transformManager.navY != 0 || this.transformManager.navZ != 0 : this.transformManager.isSpinInternal && this.transformManager.internalRotationAxis.angle != 0 || this.transformManager.isSpinFixed && this.transformManager.fixedRotationAxis.angle != 0 || !this.transformManager.isSpinFixed && !this.transformManager.isSpinInternal && (this.transformManager.spinX != 0 || this.transformManager.spinY != 0 || this.transformManager.spinZ != 0));
 this.targetTime = Clazz.floatToLong (++this.index * 1000 / this.myFps);
 this.currentTime = System.currentTimeMillis () - this.startTime;
 this.sleepTime = (this.targetTime - this.currentTime);
@@ -84,7 +84,7 @@ while (!this.checkInterrupted () && !this.viewer.getRefreshing ()) if (!this.run
 
 if (this.bsAtoms == null) this.viewer.refresh (1, "SpinThread:run()");
  else this.viewer.requestRepaintAndWait ("spin thread");
-if (!this.isNav && this.endDegrees >= 0 ? this.nDegrees >= this.endDegrees - 0.001 : -this.nDegrees <= this.endDegrees + 0.001) {
+if (this.endDegrees >= 1e10 ? this.nDegrees / this.endDegrees > 0.99 : !this.isNav && this.endDegrees >= 0 ? this.nDegrees >= this.endDegrees - 0.001 : -this.nDegrees <= this.endDegrees + 0.001) {
 this.isDone = true;
 this.transformManager.setSpinOff ();
 }if (!this.runSleep (this.sleepTime, 0)) return;

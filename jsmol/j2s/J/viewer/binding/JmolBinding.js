@@ -2,8 +2,13 @@ Clazz.declarePackage ("J.viewer.binding");
 Clazz.load (["J.viewer.binding.Binding"], "J.viewer.binding.JmolBinding", null, function () {
 c$ = Clazz.declareType (J.viewer.binding, "JmolBinding", J.viewer.binding.Binding);
 Clazz.makeConstructor (c$, 
+function () {
+Clazz.superConstructor (this, J.viewer.binding.JmolBinding, []);
+this.set ("toggle");
+});
+$_M(c$, "set", 
 function (name) {
-Clazz.superConstructor (this, J.viewer.binding.JmolBinding, [name]);
+this.name = name;
 this.setGeneralBindings ();
 this.setSelectBindings ();
 }, "~S");

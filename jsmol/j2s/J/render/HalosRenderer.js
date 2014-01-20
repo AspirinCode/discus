@@ -4,7 +4,7 @@ c$ = Clazz.decorateAsClass (function () {
 this.isAntialiased = false;
 Clazz.instantialize (this, arguments);
 }, J.render, "HalosRenderer", J.render.ShapeRenderer);
-Clazz.overrideMethod (c$, "render", 
+$_V(c$, "render", 
 function () {
 var halos = this.shape;
 var selectDisplayTrue = this.viewer.getSelectionHaloEnabled (true);
@@ -48,10 +48,10 @@ if (!this.g3d.setColix (this.colix)) {
 needTranslucent = true;
 this.colix = 0;
 if (colixFill == 0 || !this.g3d.setColix (colixFill)) return needTranslucent;
-}var z = atom.screenZ;
+}var z = atom.sZ;
 var d = this.mad;
 if (d < 0) {
-d = atom.screenDiameter;
+d = atom.sD;
 if (d == 0) {
 var ellipsemax = (atom.isShapeVisible (20) ? atom.getADPMinMax (true) : 0);
 if (ellipsemax > 0) d = this.viewer.scaleToScreen (z, Clazz.doubleToInt (Math.floor (ellipsemax * 2000)));
@@ -67,7 +67,7 @@ if (more > 20) more = 20;
 d += more;
 if (this.isAntialiased) d *= 2;
 if (d < 1) return false;
-this.g3d.drawFilledCircle (this.colix, colixFill, Clazz.doubleToInt (Math.floor (d)), atom.screenX, atom.screenY, atom.screenZ);
+this.g3d.drawFilledCircle (this.colix, colixFill, Clazz.doubleToInt (Math.floor (d)), atom.sX, atom.sY, atom.sZ);
 return needTranslucent;
 }, "J.modelset.Atom");
 });

@@ -1,10 +1,21 @@
 <?php
 
+// from http://us3.php.net/file_get_contents 
+
+// Tip
+//
+// A URL can be used as a filename with this function if the fopen wrappers 
+// have been enabled. See fopen() for more details on how to specify the 
+// filename. See the Supported Protocols and Wrappers for links to information 
+// about what abilities the various wrappers have, notes on their usage, and 
+// information on any predefined variables they may provide.
+
 // jsmol.php
 // Bob Hanson hansonr@stolaf.edu 1/11/2013
 //
-// last modified: 30 Sep 2013 -- adjusted error handling to only report E_ERROR not E_WARNING
+// last modified: 30 Oct 2013 -- saveFile should not convert " to _
 //
+// 30 Sep 2013 -- adjusted error handling to only report E_ERROR not E_WARNING
 // 7 Sep 2013 -- adding PHP error handling
 //
 // Server-side Jmol delivers:
@@ -193,7 +204,7 @@ if ($call == "getInfoFromDatabase") {
 		}
 	}
 } else if ($call == "saveFile") {
-	$imagedata = getValueSimple($values, "data", "");
+	$imagedata = $_REQUEST["data"];//getValueSimple($values, "data", ""); don't want to convert " to _ here
 	$filename = getValueSimple($values, "filename", "");
 	$contentType = getValueSimple($values, "mimetype", "application/octet-stream");
 	if ($encoding == "base64") {
