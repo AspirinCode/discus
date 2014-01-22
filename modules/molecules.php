@@ -837,7 +837,7 @@ class molecules extends base {
 		# get list of fields
 		foreach ($this -> data_structure as $field) {
 			# get only conformational prop
-			if(!@in_array($field[0], $this -> hide) && $field[2] != 1) {
+			if(!@in_array($field[0], $this -> hide) && ($field[2] == 0 || $field[2] == 2)) {
 				$fields[] = (!empty($field[3]) ? $field[3] : 'conf.').$field[0];
 			}
 		}
@@ -908,6 +908,7 @@ class molecules extends base {
 		else {
 			$query = 'SELECT conf.id, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).' FROM ('.$this -> search_sql(true).') as temp JOIN '.$this -> project.'docking_conformations AS conf ON conf.id = temp.id LEFT JOIN '.$this -> project.'docking_conformations_properties AS confprop ON confprop.id = temp.id WHERE conf.target_id = '.$target_id.(!empty($sql_var) ? ' AND '.implode(' AND ',$sql_var) : '');
 			$this -> Database -> query($query);
+			$num = $this -> Database -> num_rows();
 			while($row = $this -> Database -> fetch_assoc()) {
 				$this -> mols[$row['id']] = $row;
 			}
