@@ -370,7 +370,6 @@ class molecules extends base {
 				}
 			}
 			else {
-				
 				$this -> gen_sorting($this -> get_var_prefix($_GET['sort']));
 			}
 			
@@ -430,7 +429,7 @@ class molecules extends base {
 			}
 			#catch disable grouping for multitarget
 			elseif($disable_mol_grouping) {
-				$query = 'SELECT conf.id, conf.mol_id FROM '.$this -> project.'docking_conformations AS conf JOIN (SELECT SUBSTRING_INDEX(GROUP_CONCAT(conf.id ORDER BY '.$this -> sorting['prefix_sort'].'), ",", 1) AS id, conf.mol_id FROM '.$this -> project.'docking_conformations AS conf '.(!empty($sql_join) ? implode(' ', $sql_join) : '').' '.( !empty($sql_var) ? 'WHERE '.implode(' AND ', $sql_var) : '').'  GROUP BY conf.mol_id '.(!empty($having_join) ? 'HAVING '.implode(' ', $having_join) : '').' ORDER BY '.$this -> sorting['prefix_sort_group'].') as temp USING (mol_id) ORDER BY '.$this -> sorting['prefix_sort'];
+				$query = 'SELECT conf.id, conf.mol_id FROM '.$this -> project.'docking_conformations AS conf JOIN (SELECT GROUP_CONCAT(conf.id ORDER BY '.$this -> sorting['prefix_sort'].') AS ids, conf.mol_id, '.$this -> sorting['prefix_sort_field'].' FROM '.$this -> project.'docking_conformations AS conf '.(!empty($sql_join) ? implode(' ', $sql_join) : '').' '.( !empty($sql_var) ? 'WHERE '.implode(' AND ', $sql_var) : '').'  GROUP BY conf.mol_id '.(!empty($having_join) ? 'HAVING '.implode(' ', $having_join) : '').' ORDER BY '.$this -> sorting['prefix_sort_group'].') as temp ON conf.mol_id = temp.mol_id '.(!empty($sql_join) ? implode(' ', $sql_join) : '').' '.( !empty($sql_var) ? 'WHERE '.implode(' AND ', $sql_var) : '').' ORDER BY '.$this -> sorting['prefix_sort'];
 			}
 			else {
 				$query = 'SELECT SUBSTRING_INDEX(GROUP_CONCAT(conf.id ORDER BY '.$this -> sorting['prefix_sort'].'), ",", 1) AS id, conf.mol_id FROM '.$this -> project.'docking_conformations AS conf '.(!empty($sql_join) ? implode(' ', $sql_join) : '').' '.( !empty($sql_var) ? 'WHERE '.implode(' AND ', $sql_var) : '').'  GROUP BY conf.mol_id '.(!empty($having_join) ? 'HAVING '.implode(' ', $having_join) : '').' ORDER BY '.$this -> sorting['prefix_sort_group'];
