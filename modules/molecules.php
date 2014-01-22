@@ -906,7 +906,7 @@ class molecules extends base {
 			}
 		}
 		else {
-			$query = 'SELECT conf.id, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).' FROM ('.$this -> search_sql(true).') as temp JOIN '.$this -> project.'docking_conformations AS conf ON conf.id = temp.id LEFT JOIN '.$this -> project.'docking_conformations_properties AS confprop ON confprop.id = temp.id WHERE conf.target_id = '.$target_id.(!empty($sql_var) ? ' AND '.implode(' AND ',$sql_var) : '');
+			$query = 'SELECT conf.id, UNCOMPRESS(conf.mol2) as mol2, '.implode(',',$fields).' FROM ('.$this -> search_sql(true).') as temp JOIN '.$this -> project.'docking_conformations AS conf ON conf.id = temp.id LEFT JOIN '.$this -> project.'docking_conformations_properties AS confprop ON confprop.id = temp.id LEFT JOIN '.$this -> project.'docking_conformations_interactions as confint ON conf.id = confint.id WHERE conf.target_id = '.$target_id.(!empty($sql_var) ? ' AND '.implode(' AND ',$sql_var) : '');
 			$this -> Database -> query($query);
 			$num = $this -> Database -> num_rows();
 			while($row = $this -> Database -> fetch_assoc()) {
