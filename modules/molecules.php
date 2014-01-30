@@ -151,7 +151,7 @@ class molecules extends base {
 	
 		# check if target term is necessary
 		if(!empty($target_id) && $target_id > 0) {
-			$var_target .= (!empty($var_target) ? ' AND ' : '').$prefix.'target_id = '.$target_id;
+			$var_target = (!empty($var_target) ? '('.preg_replace('/^ (AND|OR)/', '', $var_target).') AND ' : '').$prefix.'target_id = '.$target_id;
 		}
 	
 		
