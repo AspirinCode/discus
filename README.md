@@ -66,3 +66,5 @@ You can do it via CLI or via PhpMyAdmin
 2.1.9. DiSCuS is ready for use
 
 Note: additional setup might be necessary for some plugins, f.e. you must get and copy your Xscore code, install Tripos Sybyl on host, etc.
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/22c804cc73ffadcef7f044636cd07a5c "githalytics.com")](http://githalytics.com/mwojcikowski/discus)
