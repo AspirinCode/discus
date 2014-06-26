@@ -27,9 +27,13 @@ Database System for Compound Selection
 
 > apt-get -y install avahi-daemon libnss-mdns
 
-2.1.3. Install dependencies for OB compilation
+2.1.3. Install dependencies for OB compilation (Eigen 2 needs to be removed, since new builds of openbabel prefer Eigen 3)
 
 > apt-get -y build-dep openbabel
+
+> apt-get remove libeigen2-dev
+
+> apt-get install libeigen3-dev
 
 2.1.4. Download Openbabel and Mychem (using discus-deploy repository)
 
