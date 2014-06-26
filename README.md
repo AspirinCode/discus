@@ -57,13 +57,22 @@ Database System for Compound Selection
 
 You can do it via CLI or via PhpMyAdmin
 
-2.1.7. Get DiSCuS code
+2.1.7. Include OpenBabel PHP extension to php.ini
+
+> echo "extension = openbabel-php.so" > /etc/php5/conf.d/21-disus.ini
+
+> service apache2 restart
+
+
+2.1.8. Get DiSCuS code
 
 > cd /var/www
 
 > git clone https://github.com/mwojcikowski/discus.git discus
 
-2.1.8. Open your instance of DiSCuS in web browser and proceed with installation.
+> chmod 777 discus
+
+2.1.9. Open your instance of DiSCuS in web browser and proceed with installation.
 
 > http://YOUR_HOSTNAME_OR_IP/discus/
 
