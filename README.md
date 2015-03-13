@@ -80,4 +80,10 @@ You can do it via CLI or via PhpMyAdmin
 
 Note: additional setup might be necessary for some plugins, f.e. you must get and copy your Xscore code, install Tripos Sybyl on host, etc.
 
+3.0. References
+If you found DiSCuS usefull in your research pleas cite:
+"DiSCuS: an open platform for (not only) virtual screening results management", Wójcikowski M, Zielenkiewicz P, Siedlecki P
+J Chem Inf Model. 2014 Jan 27;54(1):347-54;
+
+
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/22c804cc73ffadcef7f044636cd07a5c "githalytics.com")](http://githalytics.com/mwojcikowski/discus)
